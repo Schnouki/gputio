@@ -21,7 +21,7 @@ class GPutIO(object):
         win.add(hbox)
 
         # Tree store
-        self.tree = gtk.TreeStore(str, int, gtk.gdk.Pixbuf)
+        self.tree = gtk.TreeStore(str, int, gtk.gdk.Pixbuf, int, str)
 
         # Scrolled window (for the tree view)
         sw = gtk.ScrolledWindow()
@@ -34,6 +34,7 @@ class GPutIO(object):
         self.tv.set_enable_tree_lines(True)
         self.tv.set_search_column(0)
         self.tv.set_rules_hint(True)
+        self.tv.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
 
         # Cell renderers
         cell_txt = gtk.CellRendererText()
@@ -55,6 +56,9 @@ class GPutIO(object):
         tvc.set_cell_data_func(cell_txt_right, self._render_size)
         tvc.set_sort_column_id(1)
         self.tv.append_column(tvc)
+
+        # Default sorting order
+        self.tree.set_sort_column_id(0, gtk.SORT_ASCENDING)
 
         # Buttons box
         bbox = gtk.VButtonBox()
@@ -125,7 +129,7 @@ class GPutIO(object):
                 pb = self._get_icon(icon_names)
                 
             tree_iter = self.tree.append(parent,
-                                         (it.name, int(it.size), pb))
+                                         (it.name, int(it.size), pb, int(it.id), it.download_url))
             if it.is_dir:
                 dirs.append((it.id, tree_iter))
         
@@ -149,11 +153,6 @@ class GPutIO(object):
     # Quit the app
     def destroy(self, widget, data=None):
         gtk.main_quit()
-
-
-def queue_download(path, url):
-    # d4x -d "path" "url"
-    pass
 
 if __name__ == "__main__":
     # Read config file
