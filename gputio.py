@@ -4,6 +4,7 @@ import putio
 
 import pygtk
 pygtk.require('2.0')
+import glib
 import gtk
 
 class GPutIO(object):
@@ -24,16 +25,16 @@ class GPutIO(object):
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         
         # Tree view
-        treeview = gtk.TreeView(self.tree)
-        sw.add(treeview)
-        treeview.set_enable_tree_lines(True)
-        treeview.set_search_column(0)
-        treeview.set_rules_hint(True)
+        self.tv = gtk.TreeView(self.tree)
+        sw.add(self.tv)
+        self.tv.set_enable_tree_lines(True)
+        self.tv.set_search_column(0)
+        self.tv.set_rules_hint(True)
 
         # Add columns
         cell = gtk.CellRendererText()
         tvc = gtk.TreeViewColumn("Name", cell, text=0)
-        treeview.append_column(tvc)
+        self.tv.append_column(tvc)
         tvc.set_expand(True)
         tvc.set_sort_column_id(0)
 
@@ -41,7 +42,7 @@ class GPutIO(object):
         cell.set_property("xalign", 1.0)
         tvc = gtk.TreeViewColumn("Size", cell)
         tvc.set_cell_data_func(cell, self._render_size)
-        treeview.append_column(tvc)
+        self.tv.append_column(tvc)
         tvc.set_sort_column_id(1)
 
         # Buttons box
@@ -73,14 +74,18 @@ class GPutIO(object):
 
     def refresh(self, data=None):
         self.tree.clear()
-        self._get_folder(0, None)
+        glib.idle_add(self._get_folder, 0, None, priority=glib.PRIORITY_LOW)
 
     def _get_folder(self, root, parent):
         items = self.api.get_items(parent_id=root)
         for it in items:
             tree_iter = self.tree.append(parent, (it.name, int(it.size)))
             if it.is_dir:
-                self._get_folder(it.id, tree_iter)
+                glib.idle_add(self._get_folder, it.id, tree_iter,
+                              priority=glib.PRIORITY_LOW)
+
+            self.tv.queue_draw()
+            self.tv.window.process_updates(True)
 
     # Render the size in a CellRenderer
     def _render_size(self, col, cell, model, iter, data=None):
