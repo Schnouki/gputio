@@ -83,11 +83,28 @@ class GPutIO(object):
 
         self.refresh()
 
+    # Render the size in a CellRenderer
+    def _render_size(self, col, cell, model, iter, data=None):
+        size = model.get_value(iter, 1)
+        if size <= 0:
+            size = ""
+        elif size < 1024:
+            size = "%d B" % size
+        elif size < 1024**2:
+            size = "%.1f kB" % (size/1024.)
+        elif size < 1024**3:
+            size = "%.1f MB" % (size/(1024.**2))
+        else:
+            size = "%.1f GB" % (size/(1024.**3))
+        cell.set_property("text", size)
+
+    # Refresh the TreeView using the Put.io API
     def refresh(self, data=None):
         t = threading.Thread(target=self._get_folder, args=(0, None))
         self.tree.clear()
         t.start()
 
+    # Fetch data from a Put.io folder and add it in the TreeStore
     def _get_folder(self, root, parent):
         items = self.api.get_items(parent_id=root)
         with gtk.gdk.lock:
@@ -111,21 +128,7 @@ class GPutIO(object):
                     tree_iter = self.tree.append(parent,
                                                  (it.name, int(it.size), pb))
 
-    # Render the size in a CellRenderer
-    def _render_size(self, col, cell, model, iter, data=None):
-        size = model.get_value(iter, 1)
-        if size <= 0:
-            size = ""
-        elif size < 1024:
-            size = "%d B" % size
-        elif size < 1024**2:
-            size = "%.1f kB" % (size/1024.)
-        elif size < 1024**3:
-            size = "%.1f MB" % (size/(1024.**2))
-        else:
-            size = "%.1f GB" % (size/(1024.**3))
-        cell.set_property("text", size)
-
+    # Quit the app
     def destroy(self, widget, data=None):
         gtk.main_quit()
 
