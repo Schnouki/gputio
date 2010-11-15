@@ -15,11 +15,11 @@ import gtk
 class GPutIO(object):
     def __init__(self, apikey, apisecret):
         # Main window
-        win = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        win.set_title("GPutIO")
-        win.connect("destroy", self.destroy)
+        self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.win.set_title("GPutIO")
+        self.win.connect("destroy", self.destroy)
         hbox = gtk.HBox()
-        win.add(hbox)
+        self.win.add(hbox)
 
         # Tree store
         self.tree = gtk.TreeStore(str, int, gtk.gdk.Pixbuf, int, str)
@@ -75,6 +75,7 @@ class GPutIO(object):
         bbox.pack_start(btn)
 
         btn = gtk.Button(stock = gtk.STOCK_DELETE)
+        btn.connect("clicked", self.remove)
         bbox.pack_start(btn)
 
         btn = gtk.Button(stock = gtk.STOCK_QUIT)
@@ -89,7 +90,7 @@ class GPutIO(object):
         self.theme = gtk.icon_theme_get_default()
         self.icons = {}
 
-        win.show_all()
+        self.win.show_all()
 
         self.refresh()
 
@@ -162,6 +163,39 @@ class GPutIO(object):
             if len(url) == 0:
                 continue
             webbrowser.open(url)
+
+    # Remove selected items
+    def remove(self, data=None):
+        sel = self.tv.get_selection()
+        model, rows = sel.get_selected_rows()
+        if len(rows) == 0:
+            return
+        
+        names = []
+        ids = []
+        for row in rows:
+            tree_iter = model.get_iter(row)
+            name, id_ = model.get(tree_iter, 0, 3)
+            names.append(name)
+            ids.append(id_)
+
+        txt = "The following items will be removed:"
+        for name in names:
+            txt += "\n- "+name
+        txt += "\n\nAre you sure you want to remove them?"
+
+        dlg = gtk.MessageDialog(self.win, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                                gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, txt)
+        dlg.set_title("Really remove?")
+        resp = dlg.run()
+
+        if resp == gtk.RESPONSE_YES:
+            for id_ in ids:
+                item = self.api.get_items(id=id_)[0]
+                item.delete_item()
+            self.refresh()
+        dlg.destroy()
+                
 
     # Quit the app
     def destroy(self, widget, data=None):
