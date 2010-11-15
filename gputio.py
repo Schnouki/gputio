@@ -79,6 +79,10 @@ class GPutIO(object):
         # API init
         self.api = putio.Api(apikey, apisecret)
 
+        # Icons
+        self.theme = gtk.icon_theme_get_default()
+        self.icons = {}
+
         win.show_all()
 
         self.refresh()
@@ -107,26 +111,39 @@ class GPutIO(object):
     # Fetch data from a Put.io folder and add it in the TreeStore
     def _get_folder(self, root, parent):
         items = self.api.get_items(parent_id=root)
-        with gtk.gdk.lock:
-            theme = gtk.icon_theme_get_default()
+        dirs = []
         for it in items:
+            pb = None
             if it.is_dir:
-                with gtk.gdk.lock:
-                    pb = theme.load_icon("folder", 16, 0)
-                    tree_iter = self.tree.append(parent,
-                                                 (it.name, int(it.size), pb))
-                self._get_folder(it.id, tree_iter)
-
+                pb = self._get_icon(("folder",))
             else:
-                pb = None
                 (file_type, encoding) = mimetypes.guess_type(it.name)
                 if file_type is not None:
                     with gtk.gdk.lock:
                         icon_names = gio.content_type_get_icon(file_type).get_names()
-                        pb = theme.choose_icon(icon_names, 16, 0).load_icon()
-                with gtk.gdk.lock:
-                    tree_iter = self.tree.append(parent,
-                                                 (it.name, int(it.size), pb))
+                    pb = self._get_icon(icon_names)
+                
+            tree_iter = self.tree.append(parent,
+                                         (it.name, int(it.size), pb))
+            if it.is_dir:
+                dirs.append((it.id, tree_iter))
+        
+        for (it_id, tree_iter) in dirs:
+            self._get_folder(it_id, tree_iter)
+
+    # Get an icon from the default theme, using a cache if possible
+    def _get_icon(self, names):
+        # Try from cache
+        for name in names:
+            if name in self.icons:
+                return self.icons[name]
+
+        # Not in cache --> try to get it from Gtk and cache it
+        with gtk.gdk.lock:
+            pb = self.theme.choose_icon(names, 16, 0).load_icon()
+        for name in names:
+            self.icons[name] = pb
+        return pb
 
     # Quit the app
     def destroy(self, widget, data=None):
