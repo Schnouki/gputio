@@ -1,12 +1,14 @@
 #!/usr/bin/env python2
 
 import mimetypes
+import threading
+
 import putio
 
 import pygtk
 pygtk.require('2.0')
 import gio
-import glib
+import gobject
 import gtk
 
 class GPutIO(object):
@@ -82,31 +84,32 @@ class GPutIO(object):
         self.refresh()
 
     def refresh(self, data=None):
+        t = threading.Thread(target=self._get_folder, args=(0, None))
         self.tree.clear()
-        glib.idle_add(self._get_folder, 0, None, priority=glib.PRIORITY_LOW)
+        t.start()
 
     def _get_folder(self, root, parent):
         items = self.api.get_items(parent_id=root)
-        theme = gtk.icon_theme_get_default()
+        with gtk.gdk.lock:
+            theme = gtk.icon_theme_get_default()
         for it in items:
             if it.is_dir:
-                pb = theme.load_icon("folder", 16, 0)
-                tree_iter = self.tree.append(parent,
-                                             (it.name, int(it.size), pb))
-                glib.idle_add(self._get_folder, it.id, tree_iter,
-                              priority=glib.PRIORITY_LOW)
+                with gtk.gdk.lock:
+                    pb = theme.load_icon("folder", 16, 0)
+                    tree_iter = self.tree.append(parent,
+                                                 (it.name, int(it.size), pb))
+                self._get_folder(it.id, tree_iter)
 
             else:
                 pb = None
                 (file_type, encoding) = mimetypes.guess_type(it.name)
                 if file_type is not None:
-                    icon_names = gio.content_type_get_icon(file_type).get_names()
-                    pb = theme.choose_icon(icon_names, 16, 0).load_icon()
-                tree_iter = self.tree.append(parent,
-                                             (it.name, int(it.size), pb))
-
-            self.tv.queue_draw()
-            self.tv.window.process_updates(True)
+                    with gtk.gdk.lock:
+                        icon_names = gio.content_type_get_icon(file_type).get_names()
+                        pb = theme.choose_icon(icon_names, 16, 0).load_icon()
+                with gtk.gdk.lock:
+                    tree_iter = self.tree.append(parent,
+                                                 (it.name, int(it.size), pb))
 
     # Render the size in a CellRenderer
     def _render_size(self, col, cell, model, iter, data=None):
@@ -136,5 +139,6 @@ if __name__ == "__main__":
     with open("config") as f:
         apikey = f.readline().strip()
         apisecret = f.readline().strip()
+    gobject.threads_init()
     gputio = GPutIO(apikey, apisecret)
     gtk.main()
