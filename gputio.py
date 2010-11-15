@@ -2,6 +2,7 @@
 
 import mimetypes
 import threading
+import webbrowser
 
 import putio
 
@@ -70,6 +71,7 @@ class GPutIO(object):
         bbox.pack_start(btn)
 
         btn = gtk.Button(stock = gtk.STOCK_SAVE)
+        btn.connect("clicked", self.download)
         bbox.pack_start(btn)
 
         btn = gtk.Button(stock = gtk.STOCK_DELETE)
@@ -149,6 +151,17 @@ class GPutIO(object):
         for name in names:
             self.icons[name] = pb
         return pb
+
+    # Download selected items
+    def download(self, data=None):
+        sel = self.tv.get_selection()
+        model, rows = sel.get_selected_rows()
+        for row in rows:
+            tree_iter = model.get_iter(row)
+            url = model.get_value(tree_iter, 4)
+            if len(url) == 0:
+                continue
+            webbrowser.open(url)
 
     # Quit the app
     def destroy(self, widget, data=None):
