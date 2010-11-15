@@ -24,21 +24,25 @@ class GPutIO(object):
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         
         # Tree view
-        self.treeview = gtk.TreeView()
-        sw.add(self.treeview)
-        self.treeview.set_enable_tree_lines(True)
+        treeview = gtk.TreeView(self.tree)
+        sw.add(treeview)
+        treeview.set_enable_tree_lines(True)
+        treeview.set_search_column(0)
+        treeview.set_rules_hint(True)
 
         # Add columns
         cell = gtk.CellRendererText()
         tvc = gtk.TreeViewColumn("Name", cell, text=0)
-        self.treeview.append_column(tvc)
+        treeview.append_column(tvc)
         tvc.set_expand(True)
+        tvc.set_sort_column_id(0)
 
         cell = gtk.CellRendererText()
         cell.set_property("xalign", 1.0)
         tvc = gtk.TreeViewColumn("Size", cell)
         tvc.set_cell_data_func(cell, self._render_size)
-        self.treeview.append_column(tvc)
+        treeview.append_column(tvc)
+        tvc.set_sort_column_id(1)
 
         # Buttons box
         bbox = gtk.VButtonBox()
@@ -65,10 +69,11 @@ class GPutIO(object):
 
         win.show_all()
 
+        self.refresh()
+
     def refresh(self, data=None):
         self.tree.clear()
         self._get_folder(0, None)
-        self.treeview.set_model(self.tree)
 
     def _get_folder(self, root, parent):
         items = self.api.get_items(parent_id=root)
