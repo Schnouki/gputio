@@ -17,10 +17,15 @@ class GPutIO(object):
 
         # Tree store
         self.tree = gtk.TreeStore(str, int)
+
+        # Scrolled window (for the tree view)
+        sw = gtk.ScrolledWindow()
+        hbox.pack_start(sw)
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         
         # Tree view
         self.treeview = gtk.TreeView()
-        hbox.pack_start(self.treeview)
+        sw.add(self.treeview)
         self.treeview.set_enable_tree_lines(True)
 
         # Add columns
