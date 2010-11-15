@@ -118,10 +118,11 @@ class GPutIO(object):
                 pb = self._get_icon(("folder",))
             else:
                 (file_type, encoding) = mimetypes.guess_type(it.name)
+                icon_names = ("misc",)
                 if file_type is not None:
                     with gtk.gdk.lock:
                         icon_names = gio.content_type_get_icon(file_type).get_names()
-                    pb = self._get_icon(icon_names)
+                pb = self._get_icon(icon_names)
                 
             tree_iter = self.tree.append(parent,
                                          (it.name, int(it.size), pb))
