@@ -23,14 +23,14 @@ class GPutIO(object):
         hbox.pack_start(self.treeview)
         self.treeview.set_enable_tree_lines(True)
 
-        # Cell renderer
-        cell = gtk.CellRendererText()
-
         # Add columns
+        cell = gtk.CellRendererText()
         tvc = gtk.TreeViewColumn("Name", cell, text=0)
         self.treeview.append_column(tvc)
         tvc.set_expand(True)
 
+        cell = gtk.CellRendererText()
+        cell.set_property("xalign", 1.0)
         tvc = gtk.TreeViewColumn("Size", cell)
         tvc.set_cell_data_func(cell, self._render_size)
         self.treeview.append_column(tvc)
