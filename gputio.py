@@ -16,7 +16,7 @@ class GPutIO(object):
         win.add(hbox)
 
         # Tree store
-        self.tree = gtk.TreeStore(str, str)
+        self.tree = gtk.TreeStore(str, int)
         
         # Tree view
         self.treeview = gtk.TreeView()
@@ -31,7 +31,8 @@ class GPutIO(object):
         self.treeview.append_column(tvc)
         tvc.set_expand(True)
 
-        tvc = gtk.TreeViewColumn("Size", cell, text=1)
+        tvc = gtk.TreeViewColumn("Size", cell)
+        tvc.set_cell_data_func(cell, self._render_size)
         self.treeview.append_column(tvc)
 
         # Buttons box
@@ -67,22 +68,24 @@ class GPutIO(object):
     def _get_folder(self, root, parent):
         items = self.api.get_items(parent_id=root)
         for it in items:
-            tree_iter = self.tree.append(parent, (it.name, self._render_size(it.size)))
+            tree_iter = self.tree.append(parent, (it.name, int(it.size)))
             if it.is_dir:
                 self._get_folder(it.id, tree_iter)
 
-    def _render_size(self, size):
-        size = int(size)
+    # Render the size in a CellRenderer
+    def _render_size(self, col, cell, model, iter, data=None):
+        size = model.get_value(iter, 1)
         if size <= 0:
-            return ""
+            size = ""
         elif size < 1024:
-            return "%d B" % size
+            size = "%d B" % size
         elif size < 1024**2:
-            return "%.1f kB" % (size/1024.)
+            size = "%.1f kB" % (size/1024.)
         elif size < 1024**3:
-            return "%.1f MB" % (size/(1024.**2))
+            size = "%.1f MB" % (size/(1024.**2))
         else:
-            return "%.1f GB" % (size/(1024.**3))
+            size = "%.1f GB" % (size/(1024.**3))
+        cell.set_property("text", size)
 
     def destroy(self, widget, data=None):
         gtk.main_quit()
