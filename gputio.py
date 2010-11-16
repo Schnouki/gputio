@@ -210,12 +210,16 @@ class GPutIO(object):
     def download(self, data=None):
         sel = self.tvf.get_selection()
         model, rows = sel.get_selected_rows()
+        if len(rows) == 0:
+            return
+        
         for row in rows:
             tree_iter = model.get_iter(row)
-            url = model.get_value(tree_iter, 4)
-            if len(url) == 0:
-                continue
-            webbrowser.open(url)
+            size, url, path = model.get(tree_iter, 1, 4, 5)
+            if len(url) > 0:
+                with gtk.gdk.lock:
+                    self.list.append((path, url, size, 0))
+        self.dl_event.set()
 
     # Remove selected items
     def remove(self, data=None):
