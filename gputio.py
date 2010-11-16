@@ -37,6 +37,7 @@ class GPutIO(object):
         # Main window
         self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.win.set_title("GPutIO")
+        self.win.set_default_size(640, 480)
         self.win.connect("destroy", self.destroy)
         hbox = gtk.HBox()
         self.win.add(hbox)
@@ -104,6 +105,7 @@ class GPutIO(object):
         tvc = gtk.TreeViewColumn("Progress", cell_prog)
         tvc.set_cell_data_func(cell_prog, self._render_progress)
         tvc.set_sort_column_id(3)
+        tvc.set_min_width(150)
         self.tvd.append_column(tvc)
 
         self.tvd.set_tooltip_column(1)
