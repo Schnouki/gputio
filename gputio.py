@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 
+import ConfigParser
 import mimetypes
 import threading
 import webbrowser
@@ -13,7 +14,7 @@ import gobject
 import gtk
 
 class GPutIO(object):
-    def __init__(self, apikey, apisecret):
+    def __init__(self, username, password, apikey, apisecret):
         # Main window
         self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.win.set_title("GPutIO")
@@ -116,6 +117,8 @@ class GPutIO(object):
 
         # API init
         self.api = putio.Api(apikey, apisecret)
+        self.username = username
+        self.password = password
 
         # Icons
         self.theme = gtk.icon_theme_get_default()
@@ -238,9 +241,13 @@ class GPutIO(object):
 
 if __name__ == "__main__":
     # Read config file
-    with open("config") as f:
-        apikey = f.readline().strip()
-        apisecret = f.readline().strip()
+    config = ConfigParser.SafeConfigParser()
+    config.read(("config",))
+    username = config.get("account", "username")
+    password = config.get("account", "password")
+    apikey = config.get("api", "key")
+    apisecret = config.get("api", "secret")
+
     gobject.threads_init()
-    gputio = GPutIO(apikey, apisecret)
+    gputio = GPutIO(username, password, apikey, apisecret)
     gtk.main()
