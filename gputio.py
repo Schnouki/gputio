@@ -20,28 +20,45 @@ class GPutIO(object):
         self.win.connect("destroy", self.destroy)
         hbox = gtk.HBox()
         self.win.add(hbox)
+        vpaned = gtk.VPaned()
+        hbox.pack_start(vpaned)
 
-        # Tree store
+        # Data stores
+        # - TreeStore for the files tree: name, size, icon, ID, URL
         self.tree = gtk.TreeStore(str, int, gtk.gdk.Pixbuf, int, str)
+        # - ListStore for the downloads: name, URL, total size, downloaded size
+        self.list = gtk.ListStore(str, str, int, int)
 
-        # Scrolled window (for the tree view)
-        sw = gtk.ScrolledWindow()
-        hbox.pack_start(sw)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        # Scrolled window for the files tree
+        swf = gtk.ScrolledWindow()
+        vpaned.pack1(swf, resize=True)
+        swf.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+
+        # Scrolled window for the downloads list
+        swd = gtk.ScrolledWindow()
+        vpaned.pack2(swd, resize=False)
+        swd.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         
-        # Tree view
-        self.tv = gtk.TreeView(self.tree)
-        sw.add(self.tv)
-        self.tv.set_enable_tree_lines(True)
-        self.tv.set_search_column(0)
-        self.tv.set_rules_hint(True)
-        self.tv.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+        # TreeView for the files tree
+        self.tvf = gtk.TreeView(self.tree)
+        swf.add(self.tvf)
+        self.tvf.set_enable_tree_lines(True)
+        self.tvf.set_search_column(0)
+        self.tvf.set_rules_hint(True)
+        self.tvf.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+
+        # TreeView for the downloads list
+        self.tvd = gtk.TreeView(self.list)
+        swd.add(self.tvd)
+        self.tvd.set_search_column(0)
+        self.tvd.set_rules_hint(True)
 
         # Cell renderers
         cell_txt = gtk.CellRendererText()
         cell_txt_right = gtk.CellRendererText()
         cell_txt_right.set_property("xalign", 1.0)
         cell_pb = gtk.CellRendererPixbuf()
+        cell_prog = gtk.CellRendererProgress()
 
         # Add columns
         tvc = gtk.TreeViewColumn("Name")
@@ -51,15 +68,29 @@ class GPutIO(object):
         tvc.add_attribute(cell_pb, "pixbuf", 2)
         tvc.set_expand(True)
         tvc.set_sort_column_id(0)
-        self.tv.append_column(tvc)
+        self.tvf.append_column(tvc)
 
         tvc = gtk.TreeViewColumn("Size", cell_txt_right)
         tvc.set_cell_data_func(cell_txt_right, self._render_size)
         tvc.set_sort_column_id(1)
-        self.tv.append_column(tvc)
+        self.tvf.append_column(tvc)
+
+        tvc = gtk.TreeViewColumn("File name", cell_txt, text=0)
+        tvc.set_sort_column_id(0)
+        tvc.set_expand(True)
+        tvc.set_resizable(True)
+        self.tvd.append_column(tvc)
+
+        tvc = gtk.TreeViewColumn("Progress", cell_prog)
+        tvc.set_cell_data_func(cell_prog, self._render_progress)
+        tvc.set_sort_column_id(3)
+        self.tvd.append_column(tvc)
+
+        self.tvd.set_tooltip_column(1)
 
         # Default sorting order
         self.tree.set_sort_column_id(0, gtk.SORT_ASCENDING)
+        self.list.set_sort_column_id(0, gtk.SORT_ASCENDING)
 
         # Buttons box
         bbox = gtk.VButtonBox()
@@ -109,6 +140,11 @@ class GPutIO(object):
             size = "%.1f GB" % (size/(1024.**3))
         cell.set_property("text", size)
 
+    # Render the progress of a download in a CellRenderer
+    def _render_progress(self, col, cell, model, iter, data=None):
+        total, downloaded = model.get(iter, 2, 3)
+        cell.set_property("value", 100.*downloaded/total)
+
     # Refresh the TreeView using the Put.io API
     def refresh(self, data=None):
         t = threading.Thread(target=self._get_folder, args=(0, None))
@@ -155,7 +191,7 @@ class GPutIO(object):
 
     # Download selected items
     def download(self, data=None):
-        sel = self.tv.get_selection()
+        sel = self.tvf.get_selection()
         model, rows = sel.get_selected_rows()
         for row in rows:
             tree_iter = model.get_iter(row)
@@ -166,7 +202,7 @@ class GPutIO(object):
 
     # Remove selected items
     def remove(self, data=None):
-        sel = self.tv.get_selection()
+        sel = self.tvf.get_selection()
         model, rows = sel.get_selected_rows()
         if len(rows) == 0:
             return
@@ -195,7 +231,6 @@ class GPutIO(object):
                 item.delete_item()
             self.refresh()
         dlg.destroy()
-                
 
     # Quit the app
     def destroy(self, widget, data=None):
