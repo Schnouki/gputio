@@ -30,8 +30,8 @@ class GPutIO(object):
         hbox.pack_start(vpaned)
 
         # Data stores
-        # - TreeStore for the files tree: name, size, icon, ID, URL
-        self.tree = gtk.TreeStore(str, int, gtk.gdk.Pixbuf, int, str)
+        # - TreeStore for the files tree: name, size, icon, ID, URL, full path
+        self.tree = gtk.TreeStore(str, int, gtk.gdk.Pixbuf, int, str, str)
         # - ListStore for the downloads: name, URL, total size, downloaded size
         self.list = gtk.ListStore(str, str, int, int)
 
@@ -162,12 +162,12 @@ class GPutIO(object):
 
     # Refresh the TreeView using the Put.io API
     def refresh(self, data=None):
-        t = threading.Thread(target=self._get_folder, args=(0, None))
+        t = threading.Thread(target=self._get_folder, args=(0, None, ""))
         self.tree.clear()
         t.start()
 
     # Fetch data from a Put.io folder and add it in the TreeStore
-    def _get_folder(self, root, parent):
+    def _get_folder(self, root, parent, path):
         items = self.api.get_items(parent_id=root)
         dirs = []
         for it in items:
@@ -182,13 +182,15 @@ class GPutIO(object):
                         icon_names = gio.content_type_get_icon(file_type).get_names()
                 pb = self._get_icon(icon_names)
                 
+            it_path = os.path.join(path, it.name)
             tree_iter = self.tree.append(parent,
-                                         (it.name, int(it.size), pb, int(it.id), it.download_url))
+                                         (it.name, int(it.size), pb, int(it.id),
+                                          it.download_url, it_path))
             if it.is_dir:
-                dirs.append((it.id, tree_iter))
+                dirs.append((it.id, tree_iter, it_path))
         
-        for (it_id, tree_iter) in dirs:
-            self._get_folder(it_id, tree_iter)
+        for (it_id, tree_iter, it_path) in dirs:
+            self._get_folder(it_id, tree_iter, it_path)
 
     # Get an icon from the default theme, using a cache if possible
     def _get_icon(self, names):
