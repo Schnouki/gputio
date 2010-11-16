@@ -2,7 +2,11 @@
 
 import ConfigParser
 import mimetypes
+import os
+import os.path
+import subprocess
 import threading
+import time
 import webbrowser
 
 import putio
@@ -10,6 +14,7 @@ import putio
 import pygtk
 pygtk.require('2.0')
 import gio
+import glib
 import gobject
 import gtk
 
@@ -124,6 +129,13 @@ class GPutIO(object):
         self.theme = gtk.icon_theme_get_default()
         self.icons = {}
 
+        # Download manager
+        self.dl_event = threading.Event()
+        self.dl_quit = False
+        self.dl_thr = threading.Thread(target=self._download_thread)
+        self.dl_thr.daemon = True
+        self.dl_thr.start()
+
         self.win.show_all()
 
         self.refresh()
@@ -237,7 +249,81 @@ class GPutIO(object):
 
     # Quit the app
     def destroy(self, widget, data=None):
+        self.dl_quit = True
+        self.dl_event.set()
         gtk.main_quit()
+
+    # Download manager thread
+    def _download_thread(self):
+        # Loop forever
+        while True:
+            if self.dl_quit:
+                return
+            
+            # Try to fetch an item that has not been downloaded yet from the ListStore
+            with gtk.gdk.lock:
+                tree_iter = self.list.get_iter_first()
+                while tree_iter is not None and self.list.get_value(tree_iter, 3) != 0:
+                    tree_iter = self.list.iter_next(tree_iter)
+
+            # If nothing is available, wait until something happens and try again
+            if tree_iter is None:
+                self.dl_event.wait()
+                self.dl_event.clear()
+                continue
+
+            # If we have something, grab more informations
+            with gtk.gdk.lock:
+                name, url, total_size = self.list.get(tree_iter, 0, 1, 2)
+
+            # Construct an absolute path
+            name = os.path.join(os.path.expanduser("~"), "Downloads", name)
+
+            # Create the directory
+            try:
+                os.makedirs(os.path.dirname(name))
+            except OSError:
+                pass
+            
+            done = False
+            
+            # Already downloaded?
+            if os.path.exists(name) and os.path.getsize(name) == total_size:
+                with gtk.gdk.lock:
+                    self.list.set_value(tree_iter, 3, total_size)
+                done = True
+
+            # Not downloaded yet: do it
+            while not done:
+                wget = subprocess.Popen(["wget", "-c", "-O", name, "--http-user", self.username, "--http-password", self.password, url])
+                size = 0
+                while wget.poll() is None:
+                    if os.path.exists(name):
+                        size = os.path.getsize(name)
+                    with gtk.gdk.lock:
+                        self.list.set_value(tree_iter, 3, size)
+                    time.sleep(1)
+
+                if os.path.exists(name):
+                    size = os.path.getsize(name)
+                with gtk.gdk.lock:
+                    self.list.set_value(tree_iter, 3, size)
+                
+                # Wget terminated. Success?
+                if wget.returncode == 0 and size == total_size:
+                    done = True
+                else:
+                    time.sleep(5)
+
+            # Download over: schedule its removal
+            with gtk.gdk.lock:
+                glib.timeout_add(15000, self._download_remove, tree_iter)
+
+    # Remove a finished download from the ListStore
+    def _download_remove(self, tree_iter):
+        with gtk.gdk.lock:
+            self.list.remove(tree_iter)
+
 
 if __name__ == "__main__":
     # Read config file
