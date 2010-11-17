@@ -1,0 +1,20 @@
+# -*- mode: org -*-
+
+* DONE ETA in downloads list
+* DONE i18n
+* DONE PyCURL
+* TODO Update README.md about setup.py
+* TODO gtk.gdk.lock in cell_data_funcs
+* TODO Handle text or html files
+* TODO Better config file management
+
+* Items management [0/3]
+** TODO Folder creation
+** TODO Rename an item
+** TODO Move an item
+
+* Transfers [0/3]
+** TODO List
+** TODO Cancel
+** TODO Create
+
