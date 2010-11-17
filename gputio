@@ -16,6 +16,7 @@
 
 import ConfigParser
 import gettext
+import locale
 import mimetypes
 import os
 import os.path
@@ -163,13 +164,13 @@ class GPutIO(object):
         if size <= 0:
             size = ""
         elif size < 1024:
-            size = _("%d B") % size
+            size = locale.format_string(_("%d B"), size, True)
         elif size < 1024**2:
-            size = _("%.1f kB") % (size/1024.)
+            size = locale.format_string(_("%.1f kB"), (size/1024.), True)
         elif size < 1024**3:
-            size = _("%.1f MB") % (size/(1024.**2))
+            size = locale.format_string(_("%.1f MB"), (size/(1024.**2)), True)
         else:
-            size = _("%.1f GB") % (size/(1024.**3))
+            size = locale.format_string(_("%.1f GB"), (size/(1024.**3)), True)
         cell.set_property("text", size)
 
     # Render the progress of a download in a CellRenderer
