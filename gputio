@@ -18,7 +18,6 @@
 import ConfigParser
 import gettext
 import locale
-import mimetypes
 import os
 import os.path
 import sys
@@ -35,6 +34,20 @@ import gio
 import glib
 import gobject
 import gtk
+
+# Mapping between Put.io file type and Gtk icon names.
+TYPE_TO_ICON = {
+    "folder":     "folder",
+    "file":       "unknown",
+    "autio":      "sound",
+    "movie":      "video-x-generic",
+    "image":      "image",
+    "compressed": "package",
+    "pdf":        "document",
+    "ms_doc":     "document",
+    "text":       "txt",
+    "swf":        "shellscript",
+    }
 
 class GPutIO(object):
     def __init__(self, username, password, apikey, apisecret):
@@ -241,17 +254,7 @@ class GPutIO(object):
         items = self.api.get_items(parent_id=root, limit=0)
         dirs = []
         for it in items:
-            pb = None
-            if it.is_dir:
-                pb = self._get_icon(("folder",))
-            else:
-                (file_type, encoding) = mimetypes.guess_type(it.name)
-                icon_names = ("misc",)
-                if file_type is not None:
-                    with gtk.gdk.lock:
-                        icon_names = gio.content_type_get_icon(file_type).get_names()
-                pb = self._get_icon(icon_names)
-                
+            pb = self._get_icon(TYPE_TO_ICON[it.type])                
             it_path = os.path.join(path, it.name)
             tree_iter = self.tree.append(parent,
                                          (it.name, int(it.size), pb, int(it.id),
@@ -263,17 +266,15 @@ class GPutIO(object):
             self._get_folder(it_id, tree_iter, it_path)
 
     # Get an icon from the default theme, using a cache if possible
-    def _get_icon(self, names):
+    def _get_icon(self, name):
         # Try from cache
-        for name in names:
-            if name in self.icons:
-                return self.icons[name]
+        if name in self.icons:
+            return self.icons[name]
 
         # Not in cache --> try to get it from Gtk and cache it
         with gtk.gdk.lock:
-            pb = self.theme.choose_icon(names, 16, 0).load_icon()
-        for name in names:
-            self.icons[name] = pb
+            pb = self.theme.load_icon(name, 16, 0)
+        self.icons[name] = pb
         return pb
 
     # Download selected items
