@@ -1,2 +1,3 @@
 include gputio
 include README.md
+include po/*.po

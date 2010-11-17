@@ -15,6 +15,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 import ConfigParser
+import gettext
 import mimetypes
 import os
 import os.path
@@ -36,7 +37,7 @@ class GPutIO(object):
     def __init__(self, username, password, apikey, apisecret):
         # Main window
         self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.win.set_title("GPutIO")
+        self.win.set_title("GPutio")
         self.win.set_default_size(640, 480)
         self.win.connect("destroy", self.destroy)
         hbox = gtk.HBox()
@@ -82,7 +83,7 @@ class GPutIO(object):
         cell_prog = gtk.CellRendererProgress()
 
         # Add columns
-        tvc = gtk.TreeViewColumn("Name")
+        tvc = gtk.TreeViewColumn(_("Name"))
         tvc.pack_start(cell_pb, expand=False)
         tvc.pack_start(cell_txt)
         tvc.add_attribute(cell_txt, "text", 0)
@@ -91,18 +92,18 @@ class GPutIO(object):
         tvc.set_sort_column_id(0)
         self.tvf.append_column(tvc)
 
-        tvc = gtk.TreeViewColumn("Size", cell_txt_right)
+        tvc = gtk.TreeViewColumn(_("Size"), cell_txt_right)
         tvc.set_cell_data_func(cell_txt_right, self._render_size)
         tvc.set_sort_column_id(1)
         self.tvf.append_column(tvc)
 
-        tvc = gtk.TreeViewColumn("File name", cell_txt, text=0)
+        tvc = gtk.TreeViewColumn(_("File name"), cell_txt, text=0)
         tvc.set_sort_column_id(0)
         tvc.set_expand(True)
         tvc.set_resizable(True)
         self.tvd.append_column(tvc)
 
-        tvc = gtk.TreeViewColumn("Progress", cell_prog)
+        tvc = gtk.TreeViewColumn(_("Progress"), cell_prog)
         tvc.set_cell_data_func(cell_prog, self._render_progress)
         tvc.set_sort_column_id(3)
         tvc.set_min_width(150)
@@ -162,13 +163,13 @@ class GPutIO(object):
         if size <= 0:
             size = ""
         elif size < 1024:
-            size = "%d B" % size
+            size = _("%d B") % size
         elif size < 1024**2:
-            size = "%.1f kB" % (size/1024.)
+            size = _("%.1f kB") % (size/1024.)
         elif size < 1024**3:
-            size = "%.1f MB" % (size/(1024.**2))
+            size = _("%.1f MB") % (size/(1024.**2))
         else:
-            size = "%.1f GB" % (size/(1024.**3))
+            size = _("%.1f GB") % (size/(1024.**3))
         cell.set_property("text", size)
 
     # Render the progress of a download in a CellRenderer
@@ -252,14 +253,15 @@ class GPutIO(object):
             names.append(name)
             ids.append(id_)
 
-        txt = "The following items will be removed:"
+        txt = _("The following items will be removed:\n%s\nAre you sure you want to remove them?")
+        files = ""
         for name in names:
-            txt += "\n- "+name
-        txt += "\n\nAre you sure you want to remove them?"
+            files += "- %s\n" % name
+        txt = txt % files
 
         dlg = gtk.MessageDialog(self.win, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                                 gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, txt)
-        dlg.set_title("Really remove?")
+        dlg.set_title(_("Really remove?"))
         resp = dlg.run()
 
         if resp == gtk.RESPONSE_YES:
@@ -348,6 +350,9 @@ class GPutIO(object):
 
 
 if __name__ == "__main__":
+    # i18n
+    gettext.install("gputio")
+    
     # Read config file
     config = ConfigParser.SafeConfigParser()
     config.read(("config",))

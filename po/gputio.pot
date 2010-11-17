@@ -1,0 +1,47 @@
+#: ../gputio:86
+msgid "Name"
+msgstr ""
+
+#: ../gputio:95
+msgid "Size"
+msgstr ""
+
+#: ../gputio:100
+msgid "File name"
+msgstr ""
+
+#: ../gputio:106
+msgid "Progress"
+msgstr ""
+
+#: ../gputio:166
+#, python-format
+msgid "%d B"
+msgstr ""
+
+#: ../gputio:168
+#, python-format
+msgid "%.1f kB"
+msgstr ""
+
+#: ../gputio:170
+#, python-format
+msgid "%.1f MB"
+msgstr ""
+
+#: ../gputio:172
+#, python-format
+msgid "%.1f GB"
+msgstr ""
+
+#: ../gputio:256
+#, python-format
+msgid ""
+"The following items will be removed:\n"
+"%s\n"
+"Are you sure you want to remove them?"
+msgstr ""
+
+#: ../gputio:264
+msgid "Really remove?"
+msgstr ""
