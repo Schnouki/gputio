@@ -238,7 +238,7 @@ class GPutIO(object):
 
     # Fetch data from a Put.io folder and add it in the TreeStore
     def _get_folder(self, root, parent, path):
-        items = self.api.get_items(parent_id=root)
+        items = self.api.get_items(parent_id=root, limit=0)
         dirs = []
         for it in items:
             pb = None
