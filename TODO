@@ -5,7 +5,7 @@
 * DONE PyCURL
 * TODO Update README.md about setup.py
 * TODO gtk.gdk.lock in cell_data_funcs
-* TODO Handle text or html files
+* DONE Handle text or html files
 * TODO Better config file management
 
 * Items management [0/3]
