@@ -10,43 +10,91 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../gputio:86
+#: ../gputio:89
 msgid "Name"
 msgstr "Nom"
 
-#: ../gputio:95
+#: ../gputio:98
 msgid "Size"
 msgstr "Taille"
 
-#: ../gputio:100
+#: ../gputio:103
 msgid "File name"
 msgstr "Nom du fichier"
 
-#: ../gputio:106
+#: ../gputio:109
 msgid "Progress"
 msgstr "Progression"
 
-#: ../gputio:166
+#: ../gputio:116
+msgid "Speed"
+msgstr "Vitesse"
+
+#: ../gputio:123
+msgid "ETA"
+msgstr "Temps restant"
+
+#: ../gputio:183
 #, python-format
 msgid "%d B"
 msgstr "%d octets"
 
-#: ../gputio:168
+#: ../gputio:185
 #, python-format
 msgid "%.1f kB"
 msgstr "%.1f ko"
 
-#: ../gputio:170
+#: ../gputio:187
 #, python-format
 msgid "%.1f MB"
 msgstr "%.1f Mo"
 
-#: ../gputio:172
+#: ../gputio:189
 #, python-format
 msgid "%.1f GB"
 msgstr "%.1f Go"
 
-#: ../gputio:256
+#: ../gputio:198
+#, python-format
+msgid "%d B/s"
+msgstr "%d o/s"
+
+#: ../gputio:200
+#, python-format
+msgid "%.1f kB/s"
+msgstr "%.1f ko/s"
+
+#: ../gputio:202
+#, python-format
+msgid "%.1f MB/s"
+msgstr "%.1f Mo/s"
+
+#: ../gputio:221
+#, python-format
+msgid "%d y"
+msgstr "%d a"
+
+#: ../gputio:223
+#, python-format
+msgid "%d d"
+msgstr "%d j"
+
+#: ../gputio:225
+#, python-format
+msgid "%d h"
+msgstr "%d h"
+
+#: ../gputio:227
+#, python-format
+msgid "%d m"
+msgstr "%d m"
+
+#: ../gputio:229
+#, python-format
+msgid "%d s"
+msgstr "%d s"
+
+#: ../gputio:314
 #, python-format
 msgid ""
 "The following items will be removed:\n"
@@ -57,6 +105,6 @@ msgstr ""
 "%s\n"
 "Êtes-vous sûr de vouloir les supprimer ?"
 
-#: ../gputio:264
+#: ../gputio:322
 msgid "Really remove?"
 msgstr "Voulez-vous vraiment supprimer ceci ?"

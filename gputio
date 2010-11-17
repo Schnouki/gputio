@@ -20,12 +20,13 @@ import locale
 import mimetypes
 import os
 import os.path
-import subprocess
+import sys
 import threading
 import time
-import webbrowser
+import traceback
 
 import putio
+import pycurl
 
 import pygtk
 pygtk.require('2.0')
@@ -49,8 +50,8 @@ class GPutIO(object):
         # Data stores
         # - TreeStore for the files tree: name, size, icon, ID, URL, full path
         self.tree = gtk.TreeStore(str, int, gtk.gdk.Pixbuf, int, str, str)
-        # - ListStore for the downloads: name, URL, total size, downloaded size
-        self.list = gtk.ListStore(str, str, int, int)
+        # - ListStore for the downloads: name, URL, total size, downloaded size, current speed
+        self.list = gtk.ListStore(str, str, int, int, float)
 
         # Scrolled window for the files tree
         swf = gtk.ScrolledWindow()
@@ -108,6 +109,20 @@ class GPutIO(object):
         tvc.set_cell_data_func(cell_prog, self._render_progress)
         tvc.set_sort_column_id(3)
         tvc.set_min_width(150)
+        tvc.set_resizable(True)
+        self.tvd.append_column(tvc)
+
+        tvc = gtk.TreeViewColumn(_("Speed"), cell_txt_right)
+        tvc.set_cell_data_func(cell_txt_right, self._render_speed)
+        tvc.set_sort_column_id(4)
+        tvc.set_min_width(100)
+        tvc.set_resizable(True)
+        self.tvd.append_column(tvc)
+
+        tvc = gtk.TreeViewColumn(_("ETA"), cell_txt_right)
+        tvc.set_cell_data_func(cell_txt_right, self._render_eta)
+        tvc.set_min_width(100)
+        tvc.set_resizable(True)
         self.tvd.append_column(tvc)
 
         self.tvd.set_tooltip_column(1)
@@ -158,7 +173,7 @@ class GPutIO(object):
 
         self.refresh()
 
-    # Render the size in a CellRenderer
+    # Render a file size in a CellRenderer
     def _render_size(self, col, cell, model, iter, data=None):
         size = model.get_value(iter, 1)
         if size <= 0:
@@ -173,10 +188,46 @@ class GPutIO(object):
             size = locale.format_string(_("%.1f GB"), (size/(1024.**3)), True)
         cell.set_property("text", size)
 
+    # Render a download speed in a CellRenderer
+    def _render_speed(self, col, cell, model, iter, data=None):
+        speed = model.get_value(iter, 4)
+        if speed <= 0.:
+            speed = ""
+        elif speed < 1024.:
+            speed = locale.format_string(_("%d B/s"), int(speed), True)
+        elif speed < 1024.**2:
+            speed = locale.format_string(_("%.1f kB/s"), speed/1024., True)
+        else:
+            speed = locale.format_string(_("%.1f MB/s"), speed/(1024.**2), True)
+        cell.set_property("text", speed)
+
     # Render the progress of a download in a CellRenderer
     def _render_progress(self, col, cell, model, iter, data=None):
         total, downloaded = model.get(iter, 2, 3)
         cell.set_property("value", 100.*downloaded/total)
+
+    # Render the ETA of a download in a CellRenderer
+    def _render_eta(self, col, cell, model, iter, data=None):
+        total_size, size, speed = model.get(iter, 2, 3, 4)
+        eta = []
+        if speed > .001:
+            eta_s = int((total_size - size) / speed)
+            eta_m, s = divmod(eta_s, 60)
+            eta_h, m = divmod(eta_m, 60)
+            eta_d, h = divmod(eta_h, 24)
+            y, d = divmod(eta_d, 365)
+            if y > 0:
+                eta.append(locale.format_string(_("%d y"), y))
+            if d > 0:
+                eta.append(locale.format_string(_("%d d"), d))
+            if h > 0:
+                eta.append(locale.format_string(_("%d h"), h))
+            if m > 0:
+                eta.append(locale.format_string(_("%d m"), m))
+            if s > 0 or len(eta) == 0:
+                eta.append(locale.format_string(_("%d s"), s))
+        eta = " ".join(eta)
+        cell.set_property("text", eta)
 
     # Refresh the TreeView using the Put.io API
     def refresh(self, data=None):
@@ -236,7 +287,7 @@ class GPutIO(object):
             size, url, path = model.get(tree_iter, 1, 4, 5)
             if len(url) > 0:
                 with gtk.gdk.lock:
-                    self.list.append((path, url, size, 0))
+                    self.list.append((path, url, size, 0, 0.))
         self.dl_event.set()
 
     # Remove selected items
@@ -303,41 +354,79 @@ class GPutIO(object):
 
             # Construct an absolute path
             name = os.path.join(os.path.expanduser("~"), "Downloads", name)
-
-            # Create the directory
             try:
                 os.makedirs(os.path.dirname(name))
             except OSError:
                 pass
             
-            done = False
-            
             # Already downloaded?
-            if os.path.exists(name) and os.path.getsize(name) == total_size:
+            done = False
+            if os.path.isfile(name) and os.path.getsize(name) == total_size:
                 with gtk.gdk.lock:
                     self.list.set_value(tree_iter, 3, total_size)
                 done = True
-
+            
             # Not downloaded yet: do it
             while not done:
-                wget = subprocess.Popen(["wget", "-c", "-O", name, "--http-user", self.username, "--http-password", self.password, url])
                 size = 0
-                while wget.poll() is None:
-                    if os.path.exists(name):
-                        size = os.path.getsize(name)
-                    with gtk.gdk.lock:
-                        self.list.set_value(tree_iter, 3, size)
-                    time.sleep(1)
-
-                if os.path.exists(name):
+                if os.path.isfile(name):
                     size = os.path.getsize(name)
-                with gtk.gdk.lock:
-                    self.list.set_value(tree_iter, 3, size)
+                fp = open(name, "ab")
                 
-                # Wget terminated. Success?
-                if wget.returncode == 0 and size == total_size:
+                curl = pycurl.Curl()
+                curl.setopt(pycurl.URL, url)
+                curl.setopt(pycurl.WRITEDATA, fp)
+                #curl.setopt(pycurl.VERBOSE, 1)
+                curl.setopt(pycurl.NOSIGNAL, 1)
+                curl.setopt(pycurl.USERPWD, "%s:%s" % (self.username, self.password))
+                curl.setopt(pycurl.MAXREDIRS, 10)
+                if size > 0:
+                    curl.setopt(pycurl.RESUME_FROM, size+1)
+
+                # Progress callback
+                def __progress(dl_t, dl_d, up_t, up_d):
+                    # Use function attribute as a static variable. Store the
+                    # last values of timestamp + downloaded size, and use that
+                    # to compute the current download speed
+                    speed = 0.
+                    cur = (time.time(), dl_d)
+                    if len(__progress.tot) == 0:
+                        __progress.tot.append(cur)
+                    else:
+                        # Check if the previous one is older than a second
+                        last = __progress.tot[-1]
+                        if cur[0] - last[0] >= 1.:
+                            # Yes: update the variable
+                            __progress.tot.append(cur)
+                            __progress.tot = __progress.tot[-5:]
+                            first = __progress.tot[0]
+                            speed = (cur[1] - first[1]) / (cur[0] - first[0])
+                    # Update the counters
+                    with gtk.gdk.lock:
+                        self.list.set_value(tree_iter, 3, dl_d)
+                        if speed > 0.:
+                            self.list.set_value(tree_iter, 4, speed)
+                __progress.tot = []
+                curl.setopt(pycurl.NOPROGRESS, 0)
+                curl.setopt(pycurl.PROGRESSFUNCTION, __progress)
+
+                # Now do the download
+                try:
+                    curl.perform()
+                except:
+                    traceback.print_exc(file=sys.stderr)
+                    sys.stderr.flush()
+                curl.close()
+                fp.close()
+
+                # Check if everything went fine
+                size = os.path.getsize(name)
+                with gtk.gdk.lock:
+                    self.list.set(tree_iter, 3, size, 4, 0.)
+                if size == total_size:
                     done = True
                 else:
+                    print "Something went wrong, trying again in a few seconds"
                     time.sleep(5)
 
             # Download over: schedule its removal

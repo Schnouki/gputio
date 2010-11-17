@@ -1,40 +1,88 @@
-#: ../gputio:86
+#: ../gputio:89
 msgid "Name"
 msgstr ""
 
-#: ../gputio:95
+#: ../gputio:98
 msgid "Size"
 msgstr ""
 
-#: ../gputio:100
+#: ../gputio:103
 msgid "File name"
 msgstr ""
 
-#: ../gputio:106
+#: ../gputio:109
 msgid "Progress"
 msgstr ""
 
-#: ../gputio:166
+#: ../gputio:116
+msgid "Speed"
+msgstr ""
+
+#: ../gputio:123
+msgid "ETA"
+msgstr ""
+
+#: ../gputio:183
 #, python-format
 msgid "%d B"
 msgstr ""
 
-#: ../gputio:168
+#: ../gputio:185
 #, python-format
 msgid "%.1f kB"
 msgstr ""
 
-#: ../gputio:170
+#: ../gputio:187
 #, python-format
 msgid "%.1f MB"
 msgstr ""
 
-#: ../gputio:172
+#: ../gputio:189
 #, python-format
 msgid "%.1f GB"
 msgstr ""
 
-#: ../gputio:256
+#: ../gputio:198
+#, python-format
+msgid "%d B/s"
+msgstr ""
+
+#: ../gputio:200
+#, python-format
+msgid "%.1f kB/s"
+msgstr ""
+
+#: ../gputio:202
+#, python-format
+msgid "%.1f MB/s"
+msgstr ""
+
+#: ../gputio:221
+#, python-format
+msgid "%d y"
+msgstr ""
+
+#: ../gputio:223
+#, python-format
+msgid "%d d"
+msgstr ""
+
+#: ../gputio:225
+#, python-format
+msgid "%d h"
+msgstr ""
+
+#: ../gputio:227
+#, python-format
+msgid "%d m"
+msgstr ""
+
+#: ../gputio:229
+#, python-format
+msgid "%d s"
+msgstr ""
+
+#: ../gputio:314
 #, python-format
 msgid ""
 "The following items will be removed:\n"
@@ -42,6 +90,6 @@ msgid ""
 "Are you sure you want to remove them?"
 msgstr ""
 
-#: ../gputio:264
+#: ../gputio:322
 msgid "Really remove?"
 msgstr ""
