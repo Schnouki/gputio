@@ -204,7 +204,8 @@ class GPutIO(object):
 
     # Render a download speed in a CellRenderer
     def _render_speed(self, col, cell, model, iter, data=None):
-        speed = model.get_value(iter, 4)
+        with gtk.gdk.lock:
+            speed = model.get_value(iter, 4)
         if speed <= 0.:
             speed = ""
         elif speed < 1024.:
@@ -213,16 +214,19 @@ class GPutIO(object):
             speed = locale.format_string(_("%.1f kB/s"), speed/1024., True)
         else:
             speed = locale.format_string(_("%.1f MB/s"), speed/(1024.**2), True)
-        cell.set_property("text", speed)
+        with gtk.gdk.lock:
+            cell.set_property("text", speed)
 
     # Render the progress of a download in a CellRenderer
     def _render_progress(self, col, cell, model, iter, data=None):
-        total, downloaded = model.get(iter, 2, 3)
-        cell.set_property("value", 100.*downloaded/total)
+        with gtk.gdk.lock:
+            total, downloaded = model.get(iter, 2, 3)
+            cell.set_property("value", 100.*downloaded/total)
 
     # Render the ETA of a download in a CellRenderer
     def _render_eta(self, col, cell, model, iter, data=None):
-        total_size, size, speed = model.get(iter, 2, 3, 4)
+        with gtk.gdk.lock:
+            total_size, size, speed = model.get(iter, 2, 3, 4)
         eta = []
         if speed > .001:
             eta_s = int((total_size - size) / speed)
@@ -241,7 +245,8 @@ class GPutIO(object):
             if s > 0 or len(eta) == 0:
                 eta.append(locale.format_string(_("%d s"), s))
         eta = " ".join(eta)
-        cell.set_property("text", eta)
+        with gtk.gdk.lock:
+            cell.set_property("text", eta)
 
     # Refresh the TreeView using the Put.io API
     def refresh(self, data=None):

@@ -4,7 +4,7 @@
 * DONE i18n
 * DONE PyCURL
 * TODO Update README.md about setup.py
-* TODO gtk.gdk.lock in cell_data_funcs
+* DONE gtk.gdk.lock in cell_data_funcs
 * DONE Handle text or html files
 * TODO Better config file management
 
@@ -17,4 +17,3 @@
 ** TODO List
 ** TODO Cancel
 ** TODO Create
-
