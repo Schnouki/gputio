@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- mode: python -*-
 #
 # Copyright (c) 2010, Thomas Jost <schnouki@schnouki.net>
 #
@@ -181,11 +182,11 @@ class GPutIO(object):
         elif size < 1024:
             size = locale.format_string(_("%d B"), size, True)
         elif size < 1024**2:
-            size = locale.format_string(_("%.1f kB"), (size/1024.), True)
+            size = locale.format_string(_("%.1f kB"), size/1024., True)
         elif size < 1024**3:
-            size = locale.format_string(_("%.1f MB"), (size/(1024.**2)), True)
+            size = locale.format_string(_("%.1f MB"), size/(1024.**2), True)
         else:
-            size = locale.format_string(_("%.1f GB"), (size/(1024.**3)), True)
+            size = locale.format_string(_("%.1f GB"), size/(1024.**3), True)
         cell.set_property("text", size)
 
     # Render a download speed in a CellRenderer
