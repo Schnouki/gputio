@@ -3,10 +3,14 @@
 * DONE ETA in downloads list
 * DONE i18n
 * DONE PyCURL
-* TODO Update README.md about setup.py
 * DONE gtk.gdk.lock in cell_data_funcs
 * DONE Handle text or html files
+* TODO Update README.md about setup.py
 * TODO Better config file management
+
+* Download queue management [0/2]
+** TODO Cancel current download
+** TODO Remove items from the queue
 
 * Items management [0/3]
 ** TODO Folder creation

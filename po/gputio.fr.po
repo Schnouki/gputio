@@ -10,91 +10,119 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../gputio:89
+#: ../gputio:63
+msgid "<b>Your files</b>"
+msgstr "<b>Vos fichiers</b>"
+
+#: ../gputio:72
+msgid "<b>Download queue</b>"
+msgstr "<b>File d'attente des téléchargements</b>"
+
+#: ../gputio:112
+msgid "Refresh files list"
+msgstr "Actualiser la liste des fichiers"
+
+#: ../gputio:114
+msgid "Download the selection"
+msgstr "Télécharger la sélection"
+
+#: ../gputio:115
+msgid "Remove the selection"
+msgstr "Supprimer la sélection"
+
+#: ../gputio:117
+msgid "Cancel current download"
+msgstr "Annuler le téléchargement en cours"
+
+#: ../gputio:118
+msgid "Remove the selection from the download queue"
+msgstr "Supprimer la sélection de la file d'attente"
+
+#: ../gputio:142
 msgid "Name"
 msgstr "Nom"
 
-#: ../gputio:98
+#: ../gputio:151
 msgid "Size"
 msgstr "Taille"
 
-#: ../gputio:103
+#: ../gputio:156
 msgid "File name"
 msgstr "Nom du fichier"
 
-#: ../gputio:109
+#: ../gputio:162
 msgid "Progress"
 msgstr "Progression"
 
-#: ../gputio:116
+#: ../gputio:169
 msgid "Speed"
 msgstr "Vitesse"
 
-#: ../gputio:123
+#: ../gputio:176
 msgid "ETA"
 msgstr "Temps restant"
 
-#: ../gputio:183
+#: ../gputio:214
 #, python-format
 msgid "%d B"
 msgstr "%d octets"
 
-#: ../gputio:185
+#: ../gputio:216
 #, python-format
 msgid "%.1f kB"
 msgstr "%.1f ko"
 
-#: ../gputio:187
+#: ../gputio:218
 #, python-format
 msgid "%.1f MB"
 msgstr "%.1f Mo"
 
-#: ../gputio:189
+#: ../gputio:220
 #, python-format
 msgid "%.1f GB"
 msgstr "%.1f Go"
 
-#: ../gputio:198
+#: ../gputio:230
 #, python-format
 msgid "%d B/s"
 msgstr "%d o/s"
 
-#: ../gputio:200
+#: ../gputio:232
 #, python-format
 msgid "%.1f kB/s"
 msgstr "%.1f ko/s"
 
-#: ../gputio:202
+#: ../gputio:234
 #, python-format
 msgid "%.1f MB/s"
 msgstr "%.1f Mo/s"
 
-#: ../gputio:221
+#: ../gputio:256
 #, python-format
 msgid "%d y"
 msgstr "%d a"
 
-#: ../gputio:223
+#: ../gputio:258
 #, python-format
 msgid "%d d"
 msgstr "%d j"
 
-#: ../gputio:225
+#: ../gputio:260
 #, python-format
 msgid "%d h"
 msgstr "%d h"
 
-#: ../gputio:227
+#: ../gputio:262
 #, python-format
 msgid "%d m"
 msgstr "%d m"
 
-#: ../gputio:229
+#: ../gputio:264
 #, python-format
 msgid "%d s"
 msgstr "%d s"
 
-#: ../gputio:314
+#: ../gputio:333
 #, python-format
 msgid ""
 "The following items will be removed:\n"
@@ -105,6 +133,6 @@ msgstr ""
 "%s\n"
 "Êtes-vous sûr de vouloir les supprimer ?"
 
-#: ../gputio:322
+#: ../gputio:341
 msgid "Really remove?"
 msgstr "Voulez-vous vraiment supprimer ceci ?"

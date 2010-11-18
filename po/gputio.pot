@@ -1,88 +1,116 @@
-#: ../gputio:89
+#: ../gputio:63
+msgid "<b>Your files</b>"
+msgstr ""
+
+#: ../gputio:72
+msgid "<b>Download queue</b>"
+msgstr ""
+
+#: ../gputio:112
+msgid "Refresh files list"
+msgstr ""
+
+#: ../gputio:114
+msgid "Download the selection"
+msgstr ""
+
+#: ../gputio:115
+msgid "Remove the selection"
+msgstr ""
+
+#: ../gputio:117
+msgid "Cancel current download"
+msgstr ""
+
+#: ../gputio:118
+msgid "Remove the selection from the download queue"
+msgstr ""
+
+#: ../gputio:142
 msgid "Name"
 msgstr ""
 
-#: ../gputio:98
+#: ../gputio:151
 msgid "Size"
 msgstr ""
 
-#: ../gputio:103
+#: ../gputio:156
 msgid "File name"
 msgstr ""
 
-#: ../gputio:109
+#: ../gputio:162
 msgid "Progress"
 msgstr ""
 
-#: ../gputio:116
+#: ../gputio:169
 msgid "Speed"
 msgstr ""
 
-#: ../gputio:123
+#: ../gputio:176
 msgid "ETA"
 msgstr ""
 
-#: ../gputio:183
+#: ../gputio:214
 #, python-format
 msgid "%d B"
 msgstr ""
 
-#: ../gputio:185
+#: ../gputio:216
 #, python-format
 msgid "%.1f kB"
 msgstr ""
 
-#: ../gputio:187
+#: ../gputio:218
 #, python-format
 msgid "%.1f MB"
 msgstr ""
 
-#: ../gputio:189
+#: ../gputio:220
 #, python-format
 msgid "%.1f GB"
 msgstr ""
 
-#: ../gputio:198
+#: ../gputio:230
 #, python-format
 msgid "%d B/s"
 msgstr ""
 
-#: ../gputio:200
+#: ../gputio:232
 #, python-format
 msgid "%.1f kB/s"
 msgstr ""
 
-#: ../gputio:202
+#: ../gputio:234
 #, python-format
 msgid "%.1f MB/s"
 msgstr ""
 
-#: ../gputio:221
+#: ../gputio:256
 #, python-format
 msgid "%d y"
 msgstr ""
 
-#: ../gputio:223
+#: ../gputio:258
 #, python-format
 msgid "%d d"
 msgstr ""
 
-#: ../gputio:225
+#: ../gputio:260
 #, python-format
 msgid "%d h"
 msgstr ""
 
-#: ../gputio:227
+#: ../gputio:262
 #, python-format
 msgid "%d m"
 msgstr ""
 
-#: ../gputio:229
+#: ../gputio:264
 #, python-format
 msgid "%d s"
 msgstr ""
 
-#: ../gputio:314
+#: ../gputio:333
 #, python-format
 msgid ""
 "The following items will be removed:\n"
@@ -90,6 +118,6 @@ msgid ""
 "Are you sure you want to remove them?"
 msgstr ""
 
-#: ../gputio:322
+#: ../gputio:341
 msgid "Really remove?"
 msgstr ""

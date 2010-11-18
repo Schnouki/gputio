@@ -56,10 +56,27 @@ class GPutIO(object):
         self.win.set_title("GPutio")
         self.win.set_default_size(640, 480)
         self.win.connect("destroy", self.destroy)
-        hbox = gtk.HBox()
-        self.win.add(hbox)
         vpaned = gtk.VPaned()
-        hbox.pack_start(vpaned)
+        self.win.add(vpaned)
+
+        # Frames, alignments, and horizontal boxes
+        frm_files = gtk.Frame(_("<b>Your files</b>"))
+        frm_files.get_label_widget().set_use_markup(True)
+        align_files = gtk.Alignment(.5, .5, 1., 1.)
+        align_files.set_padding(2, 0, 12, 0)
+        frm_files.add(align_files)
+        vpaned.pack1(frm_files, resize=True)
+        hbox_files = gtk.HBox()
+        align_files.add(hbox_files)
+
+        frm_dl = gtk.Frame(_("<b>Download queue</b>"))
+        frm_dl.get_label_widget().set_use_markup(True)
+        align_dl = gtk.Alignment(.5, .5, 1., 1.)
+        align_dl.set_padding(2, 0, 12, 0)
+        frm_dl.add(align_dl)
+        vpaned.pack2(frm_dl, resize=False)
+        hbox_dl = gtk.HBox()
+        align_dl.add(hbox_dl)
 
         # Data stores
         # - TreeStore for the files tree: name, size, icon, ID, URL, full path
@@ -67,16 +84,39 @@ class GPutIO(object):
         # - ListStore for the downloads: name, URL, total size, downloaded size, current speed
         self.list = gtk.ListStore(str, str, int, int, float)
 
-        # Scrolled window for the files tree
+        # Frames and scrolled windows for TreeViews
+        ff = gtk.Frame()
+        hbox_files.pack_start(ff)
         swf = gtk.ScrolledWindow()
-        vpaned.pack1(swf, resize=True)
         swf.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        ff.add(swf)
 
-        # Scrolled window for the downloads list
+        fd = gtk.Frame()
+        hbox_dl.pack_start(fd)
         swd = gtk.ScrolledWindow()
-        vpaned.pack2(swd, resize=False)
         swd.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        
+        fd.add(swd)
+
+        # Toolbars
+        tb_files = gtk.Toolbar()
+        tb_files.set_orientation(gtk.ORIENTATION_VERTICAL)
+        tb_files.set_style(gtk.TOOLBAR_ICONS)
+        hbox_files.pack_start(tb_files, expand=False)
+
+        tb_dl = gtk.Toolbar()
+        tb_dl.set_orientation(gtk.ORIENTATION_VERTICAL)
+        tb_dl.set_style(gtk.TOOLBAR_ICONS)
+        hbox_dl.pack_start(tb_dl, expand=False)
+
+        # Toolbar buttons
+        tb_files.insert_stock(gtk.STOCK_REFRESH, _("Refresh files list"), None, self.refresh, None, -1)
+        tb_files.append_space()
+        tb_files.insert_stock(gtk.STOCK_SAVE, _("Download the selection"), None, self.download, None, -1)
+        tb_files.insert_stock(gtk.STOCK_DELETE, _("Remove the selection"), None, self.remove, None, -1)
+
+        tb_dl.insert_stock(gtk.STOCK_CANCEL, _("Cancel current download"), None, None, None, -1)
+        tb_dl.insert_stock(gtk.STOCK_DELETE, _("Remove the selection from the download queue"), None, None, None, -1)
+
         # TreeView for the files tree
         self.tvf = gtk.TreeView(self.tree)
         swf.add(self.tvf)
@@ -144,28 +184,6 @@ class GPutIO(object):
         # Default sorting order
         self.tree.set_sort_column_id(0, gtk.SORT_ASCENDING)
         self.list.set_sort_column_id(0, gtk.SORT_ASCENDING)
-
-        # Buttons box
-        bbox = gtk.VButtonBox()
-        hbox.pack_start(bbox, expand=False)
-        bbox.set_layout(gtk.BUTTONBOX_START)
-        
-        btn = gtk.Button(stock = gtk.STOCK_REFRESH)
-        btn.connect("clicked", self.refresh)
-        bbox.pack_start(btn)
-
-        btn = gtk.Button(stock = gtk.STOCK_SAVE)
-        btn.connect("clicked", self.download)
-        bbox.pack_start(btn)
-
-        btn = gtk.Button(stock = gtk.STOCK_DELETE)
-        btn.connect("clicked", self.remove)
-        bbox.pack_start(btn)
-
-        btn = gtk.Button(stock = gtk.STOCK_QUIT)
-        btn.connect("clicked", self.destroy)
-        bbox.pack_start(btn)
-        bbox.set_child_secondary(btn, True)
 
         # API init
         self.api = putio.Api(apikey, apisecret)
