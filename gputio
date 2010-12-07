@@ -314,7 +314,11 @@ class GPutIO(object):
                 dirs.append((it.id, tree_iter, it_path))
         
         for (it_id, tree_iter, it_path) in dirs:
-            self._get_folder(it_id, tree_iter, it_path)
+            try:
+                self._get_folder(it_id, tree_iter, it_path)
+            except putio.PutioError, e:
+                if str(e) != "You have no items to show.":
+                    raise e
 
         if parent is None:
             self.status.push(self.sb_ctxt["files"], _("Files list updated."))
