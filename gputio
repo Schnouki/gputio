@@ -155,11 +155,14 @@ class GPutIO(object):
         tvc.add_attribute(cell_txt, "text", 0)
         tvc.add_attribute(cell_pb, "pixbuf", 2)
         tvc.set_expand(True)
+        tvc.set_resizable(True)
         tvc.set_sort_column_id(0)
         self.tvf.append_column(tvc)
 
         tvc = gtk.TreeViewColumn(_("Size"), cell_txt_right)
         tvc.set_cell_data_func(cell_txt_right, self._render_size)
+        tvc.set_min_width(80)
+        tvc.set_resizable(True)
         tvc.set_sort_column_id(1)
         self.tvf.append_column(tvc)
 
