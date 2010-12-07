@@ -205,9 +205,23 @@ class GPutIO(object):
 
         self.refresh()
 
+    # Get the size of an item
+    def _get_size(self, model, iter):
+        # Is it a file or a folder?
+        if model.iter_has_child(iter):
+            # Folder
+            size = 0
+            for i in xrange(model.iter_n_children(iter)):
+                child = model.iter_nth_child(iter, i)
+                size += self._get_size(model, child)
+            return size
+        else:
+            # File
+            return model.get_value(iter, 1)
+
     # Render a file size in a CellRenderer
     def _render_size(self, col, cell, model, iter, data=None):
-        size = model.get_value(iter, 1)
+        size = self._get_size(model, iter)
         if size <= 0:
             size = ""
         elif size < 1024:
