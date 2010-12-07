@@ -56,8 +56,18 @@ class GPutIO(object):
         self.win.set_title("GPutio")
         self.win.set_default_size(640, 480)
         self.win.connect("destroy", self.destroy)
+        vbox = gtk.VBox()
+        self.win.add(vbox)
         vpaned = gtk.VPaned()
-        self.win.add(vpaned)
+        vbox.pack_start(vpaned)
+
+        # Status bar
+        self.status = gtk.Statusbar()
+        vbox.pack_start(self.status, expand=False)
+        self.sb_ctxt = {}
+        self.sb_ctxt["files"] = self.status.get_context_id("files")
+        self.sb_ctxt["hint"]  = self.status.get_context_id("hint")
+        self.sb_ctxt["queue"] = self.status.get_context_id("queue")
 
         # Frames, alignments, and horizontal boxes
         frm_files = gtk.Frame(_("<b>Your files</b>"))
@@ -283,6 +293,7 @@ class GPutIO(object):
     # Refresh the TreeView using the Put.io API
     def refresh(self, data=None):
         t = threading.Thread(target=self._get_folder, args=(0, None, ""))
+        self.status.push(self.sb_ctxt["files"], _("Refreshing files list..."))
         self.tree.clear()
         t.start()
 
@@ -301,6 +312,9 @@ class GPutIO(object):
         
         for (it_id, tree_iter, it_path) in dirs:
             self._get_folder(it_id, tree_iter, it_path)
+
+        if parent is None:
+            self.status.push(self.sb_ctxt["files"], _("Files list updated."))
 
     # Get an icon from the default theme, using a cache if possible
     def _get_icon(self, name):
