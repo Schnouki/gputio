@@ -37,14 +37,14 @@ import gtk
 
 # Mapping between Put.io file type and Gtk icon names.
 TYPE_TO_ICON = {
-    "folder":     "folder",
-    "file":       "unknown",
-    "autio":      "sound",
-    "movie":      "video-x-generic",
-    "image":      "image",
+    "audio":      "sound",
     "compressed": "package",
-    "pdf":        "document",
+    "file":       "unknown",
+    "folder":     "folder",
+    "image":      "image",
+    "movie":      "video-x-generic",
     "ms_doc":     "document",
+    "pdf":        "document",
     "text":       "txt",
     "swf":        "shellscript",
     }
