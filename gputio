@@ -410,10 +410,10 @@ class GPutIO(object):
 
             # If we have something, grab more informations
             with gtk.gdk.lock:
-                name, url, total_size = self.list.get(tree_iter, 0, 1, 2)
+                fname, url, total_size = self.list.get(tree_iter, 0, 1, 2)
 
             # Construct an absolute path
-            name = os.path.join(os.path.expanduser("~"), "Downloads", name)
+            name = os.path.join(os.path.expanduser("~"), "Downloads", fname)
             try:
                 os.makedirs(os.path.dirname(name))
             except OSError:
@@ -473,6 +473,7 @@ class GPutIO(object):
                 curl.setopt(pycurl.PROGRESSFUNCTION, __progress)
 
                 # Now do the download
+                self.status.push(self.sb_ctxt["queue"], _("Downloading %s...") % fname)
                 try:
                     curl.perform()
                 except:
@@ -487,7 +488,9 @@ class GPutIO(object):
                     self.list.set(tree_iter, 3, size, 4, 0.)
                 if size == total_size:
                     done = True
+                    self.status.push(self.sb_ctxt["queue"], _("%s downloaded successfuly.") % fname)
                 else:
+                    self.status.push(self.sb_ctxt["queue"], _("Download failed, trying again in a few seconds..."))
                     print "Something went wrong, trying again in a few seconds"
                     time.sleep(5)
 

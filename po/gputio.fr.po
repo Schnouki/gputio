@@ -10,119 +10,127 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../gputio:63
+#: ../gputio:73
 msgid "<b>Your files</b>"
 msgstr "<b>Vos fichiers</b>"
 
-#: ../gputio:72
+#: ../gputio:82
 msgid "<b>Download queue</b>"
 msgstr "<b>File d'attente des téléchargements</b>"
 
-#: ../gputio:112
+#: ../gputio:122
 msgid "Refresh files list"
 msgstr "Actualiser la liste des fichiers"
 
-#: ../gputio:114
+#: ../gputio:124
 msgid "Download the selection"
 msgstr "Télécharger la sélection"
 
-#: ../gputio:115
+#: ../gputio:125
 msgid "Remove the selection"
 msgstr "Supprimer la sélection"
 
-#: ../gputio:117
+#: ../gputio:127
 msgid "Cancel current download"
 msgstr "Annuler le téléchargement en cours"
 
-#: ../gputio:118
+#: ../gputio:128
 msgid "Remove the selection from the download queue"
 msgstr "Supprimer la sélection de la file d'attente"
 
-#: ../gputio:142
+#: ../gputio:152
 msgid "Name"
 msgstr "Nom"
 
-#: ../gputio:151
+#: ../gputio:162
 msgid "Size"
 msgstr "Taille"
 
-#: ../gputio:156
+#: ../gputio:169
 msgid "File name"
 msgstr "Nom du fichier"
 
-#: ../gputio:162
+#: ../gputio:175
 msgid "Progress"
 msgstr "Progression"
 
-#: ../gputio:169
+#: ../gputio:182
 msgid "Speed"
 msgstr "Vitesse"
 
-#: ../gputio:176
+#: ../gputio:189
 msgid "ETA"
 msgstr "Temps restant"
 
-#: ../gputio:214
+#: ../gputio:241
 #, python-format
 msgid "%d B"
 msgstr "%d octets"
 
-#: ../gputio:216
+#: ../gputio:243
 #, python-format
 msgid "%.1f kB"
 msgstr "%.1f ko"
 
-#: ../gputio:218
+#: ../gputio:245
 #, python-format
 msgid "%.1f MB"
 msgstr "%.1f Mo"
 
-#: ../gputio:220
+#: ../gputio:247
 #, python-format
 msgid "%.1f GB"
 msgstr "%.1f Go"
 
-#: ../gputio:230
+#: ../gputio:257
 #, python-format
 msgid "%d B/s"
 msgstr "%d o/s"
 
-#: ../gputio:232
+#: ../gputio:259
 #, python-format
 msgid "%.1f kB/s"
 msgstr "%.1f ko/s"
 
-#: ../gputio:234
+#: ../gputio:261
 #, python-format
 msgid "%.1f MB/s"
 msgstr "%.1f Mo/s"
 
-#: ../gputio:256
+#: ../gputio:283
 #, python-format
 msgid "%d y"
 msgstr "%d a"
 
-#: ../gputio:258
+#: ../gputio:285
 #, python-format
 msgid "%d d"
 msgstr "%d j"
 
-#: ../gputio:260
+#: ../gputio:287
 #, python-format
 msgid "%d h"
 msgstr "%d h"
 
-#: ../gputio:262
+#: ../gputio:289
 #, python-format
 msgid "%d m"
 msgstr "%d m"
 
-#: ../gputio:264
+#: ../gputio:291
 #, python-format
 msgid "%d s"
 msgstr "%d s"
 
-#: ../gputio:333
+#: ../gputio:299
+msgid "Refreshing files list..."
+msgstr "Mise à jour de la liste des fichiers..."
+
+#: ../gputio:324
+msgid "Files list updated."
+msgstr "Liste des fichiers mise à jour."
+
+#: ../gputio:368
 #, python-format
 msgid ""
 "The following items will be removed:\n"
@@ -133,6 +141,20 @@ msgstr ""
 "%s\n"
 "Êtes-vous sûr de vouloir les supprimer ?"
 
-#: ../gputio:341
+#: ../gputio:376
 msgid "Really remove?"
 msgstr "Voulez-vous vraiment supprimer ceci ?"
+
+#: ../gputio:476
+#, python-format
+msgid "Downloading %s..."
+msgstr "Téléchargement de %s..."
+
+#: ../gputio:491
+#, python-format
+msgid "%s downloaded successfuly."
+msgstr "Téléchargement de %s terminé."
+
+#: ../gputio:493
+msgid "Download failed, trying again in a few seconds..."
+msgstr "Le téléchargement a échoué, nouvel essai dans quelques secondes..."
