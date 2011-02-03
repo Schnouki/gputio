@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- mode: python -*-
 #
-# Copyright (c) 2010, Thomas Jost <schnouki@schnouki.net>
+# Copyright (c) 2010, 2011  Thomas Jost <schnouki@schnouki.net>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -90,9 +90,9 @@ class GPutIO(object):
 
         # Data stores
         # - TreeStore for the files tree: name, size, icon, ID, URL, full path
-        self.tree = gtk.TreeStore(str, int, gtk.gdk.Pixbuf, int, str, str)
+        self.tree = gtk.TreeStore(str, long, gtk.gdk.Pixbuf, int, str, str)
         # - ListStore for the downloads: name, URL, total size, downloaded size, current speed
-        self.list = gtk.ListStore(str, str, int, int, float)
+        self.list = gtk.ListStore(str, str, long, long, float)
 
         # Frames and scrolled windows for TreeViews
         ff = gtk.Frame()
@@ -312,7 +312,7 @@ class GPutIO(object):
             it_path = os.path.join(path, it.name)
             with gtk.gdk.lock:
                 tree_iter = self.tree.append(parent,
-                                             (it.name, int(it.size), pb, int(it.id),
+                                             (it.name, long(it.size), pb, int(it.id),
                                               it.download_url, it_path))
             if it.is_dir:
                 dirs.append((it.id, tree_iter, it_path))
