@@ -464,6 +464,7 @@ class GPutIO(object):
                     # to compute the current download speed
                     speed = 0.
                     cur = (time.time(), dl_d)
+                    force_redisplay = False
                     if len(__progress.tot) == 0:
                         __progress.tot.append(cur)
                     else:
@@ -475,10 +476,13 @@ class GPutIO(object):
                             __progress.tot = __progress.tot[-5:]
                             first = __progress.tot[0]
                             speed = (cur[1] - first[1]) / (cur[0] - first[0])
+                            force_redisplay = True
                     # Update the counters
                     self.list.set_value(tree_iter, 3, dl_d)
                     if speed > 0.:
                         self.list.set_value(tree_iter, 4, speed)
+                    if force_redisplay:
+                        self.tvd.queue_draw()
                     # If the download is being cancelled, return non-zero
                     if self.dl_cancel:
                         return 1
