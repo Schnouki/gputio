@@ -250,8 +250,7 @@ class GPutIO(object):
 
     # Render a download speed in a CellRenderer
     def _render_speed(self, col, cell, model, iter, data=None):
-        with gtk.gdk.lock:
-            speed = model.get_value(iter, 4)
+        speed = model.get_value(iter, 4)
         if speed <= 0.:
             speed = ""
         elif speed < 1024.:
@@ -260,19 +259,16 @@ class GPutIO(object):
             speed = locale.format_string(_("%.1f kB/s"), speed/1024., True)
         else:
             speed = locale.format_string(_("%.1f MB/s"), speed/(1024.**2), True)
-        with gtk.gdk.lock:
-            cell.set_property("text", speed)
+        cell.set_property("text", speed)
 
     # Render the progress of a download in a CellRenderer
     def _render_progress(self, col, cell, model, iter, data=None):
-        with gtk.gdk.lock:
-            total, downloaded = model.get(iter, 2, 3)
-            cell.set_property("value", 100.*downloaded/total)
+        total, downloaded = model.get(iter, 2, 3)
+        cell.set_property("value", 100.*downloaded/total)
 
     # Render the ETA of a download in a CellRenderer
     def _render_eta(self, col, cell, model, iter, data=None):
-        with gtk.gdk.lock:
-            total_size, size, speed = model.get(iter, 2, 3, 4)
+        total_size, size, speed = model.get(iter, 2, 3, 4)
         eta = []
         if speed > .001:
             eta_s = int((total_size - size) / speed)
@@ -291,8 +287,7 @@ class GPutIO(object):
             if s > 0 or len(eta) == 0:
                 eta.append(locale.format_string(_("%d s"), s))
         eta = " ".join(eta)
-        with gtk.gdk.lock:
-            cell.set_property("text", eta)
+        cell.set_property("text", eta)
 
     # Refresh the TreeView using the Put.io API
     def refresh(self, data=None):
@@ -311,10 +306,9 @@ class GPutIO(object):
         for it in items:
             pb = self._get_icon(TYPE_TO_ICON[it.type])                
             it_path = os.path.join(path, it.name)
-            with gtk.gdk.lock:
-                tree_iter = self.tree.append(parent,
-                                             (it.name, long(it.size), pb, int(it.id),
-                                              it.download_url, it_path))
+            tree_iter = self.tree.append(parent,
+                                         (it.name, long(it.size), pb, int(it.id),
+                                          it.download_url, it_path))
             if it.is_dir:
                 dirs.append((it.id, tree_iter, it_path))
         
@@ -335,29 +329,27 @@ class GPutIO(object):
             return self.icons[name]
 
         # Not in cache --> try to get it from Gtk and cache it
-        with gtk.gdk.lock:
-            pb = self.theme.load_icon(name, 16, 0)
+        pb = self.theme.load_icon(name, 16, 0)
         self.icons[name] = pb
         return pb
 
     # Download selected items
     def download(self, data=None):
-        with gtk.gdk.lock:
-            sel = self.tvf.get_selection()
-            model, rows = sel.get_selected_rows()
-            if len(rows) == 0:
-                return
+        sel = self.tvf.get_selection()
+        model, rows = sel.get_selected_rows()
+        if len(rows) == 0:
+            return
 
-            dls = []
-            for row in rows:
-                tree_iter = model.get_iter(row)
-                dls.extend(self._get_download(model, tree_iter))
+        dls = []
+        for row in rows:
+            tree_iter = model.get_iter(row)
+            dls.extend(self._get_download(model, tree_iter))
 
-            for size, url, path in dls:
-                if len(url) > 0:
-                    self.list.append((path, url, size, 0, 0.))
+        for size, url, path in dls:
+            if len(url) > 0:
+                self.list.append((path, url, size, 0, 0.))
 
-            self.dl_event.set()
+        self.dl_event.set()
 
     # Grab data needed to download the specified tree_iter and its children
     def _get_download(self, model, tree_iter):
@@ -420,10 +412,9 @@ class GPutIO(object):
                 return
             
             # Try to fetch an item that has not been downloaded yet from the ListStore
-            with gtk.gdk.lock:
-                tree_iter = self.list.get_iter_first()
-                while tree_iter is not None and self.list.get_value(tree_iter, 3) != 0:
-                    tree_iter = self.list.iter_next(tree_iter)
+            tree_iter = self.list.get_iter_first()
+            while tree_iter is not None and self.list.get_value(tree_iter, 3) != 0:
+                tree_iter = self.list.iter_next(tree_iter)
 
             # If nothing is available, wait until something happens and try again
             if tree_iter is None:
@@ -432,8 +423,7 @@ class GPutIO(object):
                 continue
 
             # If we have something, grab more informations
-            with gtk.gdk.lock:
-                fname, url, total_size = self.list.get(tree_iter, 0, 1, 2)
+            fname, url, total_size = self.list.get(tree_iter, 0, 1, 2)
 
             # Construct an absolute path
             name = os.path.join(os.path.expanduser("~"), "Downloads", fname)
@@ -445,8 +435,7 @@ class GPutIO(object):
             # Already downloaded?
             done = False
             if os.path.isfile(name) and os.path.getsize(name) == total_size:
-                with gtk.gdk.lock:
-                    self.list.set_value(tree_iter, 3, total_size)
+                self.list.set_value(tree_iter, 3, total_size)
                 done = True
             
             # Not downloaded yet: do it
@@ -487,10 +476,9 @@ class GPutIO(object):
                             first = __progress.tot[0]
                             speed = (cur[1] - first[1]) / (cur[0] - first[0])
                     # Update the counters
-                    with gtk.gdk.lock:
-                        self.list.set_value(tree_iter, 3, dl_d)
-                        if speed > 0.:
-                            self.list.set_value(tree_iter, 4, speed)
+                    self.list.set_value(tree_iter, 3, dl_d)
+                    if speed > 0.:
+                        self.list.set_value(tree_iter, 4, speed)
                     # If the download is being cancelled, return non-zero
                     if self.dl_cancel:
                         return 1
@@ -513,8 +501,7 @@ class GPutIO(object):
 
                 # Check if everything went fine
                 size = os.path.getsize(name)
-                with gtk.gdk.lock:
-                    self.list.set(tree_iter, 3, size, 4, 0.)
+                self.list.set(tree_iter, 3, size, 4, 0.)
                 if size == total_size:
                     done = True
                     self.status.push(self.sb_ctxt["queue"], _("%s downloaded successfuly.") % fname)
@@ -528,13 +515,11 @@ class GPutIO(object):
                     time.sleep(5)
 
             # Download over: schedule its removal
-            with gtk.gdk.lock:
-                glib.timeout_add(15000, self._download_remove, tree_iter)
+            glib.timeout_add(15000, self._download_remove, tree_iter)
 
     # Remove a finished download from the ListStore
     def _download_remove(self, tree_iter):
-        with gtk.gdk.lock:
-            self.list.remove(tree_iter)
+        self.list.remove(tree_iter)
 
     # Cancel the current download
     def cancel_download(self, data=None):
