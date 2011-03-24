@@ -1,0 +1,17 @@
+creator: Thomas Jost <schnouki@schnouki.net>
+
+
+reporter: Thomas Jost <schnouki@schnouki.net>
+
+
+severity: wishlist
+
+
+status: open
+
+
+summary: Many calls to gtk.gdk.lock are probably unnecessary
+
+
+time: Thu, 24 Mar 2011 19:07:25 +0000
+
