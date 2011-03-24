@@ -1,0 +1,17 @@
+creator: Thomas Jost <schnouki@schnouki.net>
+
+
+reporter: Thomas Jost <schnouki@schnouki.net>
+
+
+severity: serious
+
+
+status: open
+
+
+summary: The config file is only read from the current directory
+
+
+time: Thu, 24 Mar 2011 19:18:10 +0000
+

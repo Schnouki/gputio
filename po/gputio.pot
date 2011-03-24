@@ -50,22 +50,22 @@ msgstr ""
 msgid "ETA"
 msgstr ""
 
-#: ../gputio:241
+#: ../gputio:242
 #, python-format
 msgid "%d B"
 msgstr ""
 
-#: ../gputio:243
+#: ../gputio:244
 #, python-format
 msgid "%.1f kB"
 msgstr ""
 
-#: ../gputio:245
+#: ../gputio:246
 #, python-format
 msgid "%.1f MB"
 msgstr ""
 
-#: ../gputio:247
+#: ../gputio:248
 #, python-format
 msgid "%.1f GB"
 msgstr ""
@@ -85,40 +85,40 @@ msgstr ""
 msgid "%.1f MB/s"
 msgstr ""
 
-#: ../gputio:283
+#: ../gputio:280
 #, python-format
 msgid "%d y"
 msgstr ""
 
-#: ../gputio:285
+#: ../gputio:282
 #, python-format
 msgid "%d d"
 msgstr ""
 
-#: ../gputio:287
+#: ../gputio:284
 #, python-format
 msgid "%d h"
 msgstr ""
 
-#: ../gputio:289
+#: ../gputio:286
 #, python-format
 msgid "%d m"
 msgstr ""
 
-#: ../gputio:291
+#: ../gputio:288
 #, python-format
 msgid "%d s"
 msgstr ""
 
-#: ../gputio:299
+#: ../gputio:295
 msgid "Refreshing files list..."
 msgstr ""
 
-#: ../gputio:324
+#: ../gputio:323
 msgid "Files list updated."
 msgstr ""
 
-#: ../gputio:368
+#: ../gputio:383
 #, python-format
 msgid ""
 "The following items will be removed:\n"
@@ -126,20 +126,25 @@ msgid ""
 "Are you sure you want to remove them?"
 msgstr ""
 
-#: ../gputio:376
+#: ../gputio:391
 msgid "Really remove?"
 msgstr ""
 
-#: ../gputio:476
+#: ../gputio:494
 #, python-format
 msgid "Downloading %s..."
 msgstr ""
 
-#: ../gputio:491
+#: ../gputio:511
 #, python-format
 msgid "%s downloaded successfuly."
 msgstr ""
 
-#: ../gputio:493
+#: ../gputio:514
+#, python-format
+msgid "Download of %s has been cancelled."
+msgstr ""
+
+#: ../gputio:517
 msgid "Download failed, trying again in a few seconds..."
 msgstr ""
