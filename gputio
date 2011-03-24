@@ -124,7 +124,7 @@ class GPutIO(object):
         tb_files.insert_stock(gtk.STOCK_SAVE, _("Download the selection"), None, self.download, None, -1)
         tb_files.insert_stock(gtk.STOCK_DELETE, _("Remove the selection"), None, self.remove, None, -1)
 
-        tb_dl.insert_stock(gtk.STOCK_CANCEL, _("Cancel current download"), None, None, None, -1)
+        tb_dl.insert_stock(gtk.STOCK_CANCEL, _("Cancel current download"), None, self.cancel_download, None, -1)
         tb_dl.insert_stock(gtk.STOCK_DELETE, _("Remove the selection from the download queue"), None, None, None, -1)
 
         # TreeView for the files tree
@@ -209,6 +209,7 @@ class GPutIO(object):
 
         # Download manager
         self.dl_event = threading.Event()
+        self.dl_cancel = False
         self.dl_quit = False
         self.dl_thr = threading.Thread(target=self._download_thread)
         self.dl_thr.daemon = True
@@ -490,6 +491,9 @@ class GPutIO(object):
                         self.list.set_value(tree_iter, 3, dl_d)
                         if speed > 0.:
                             self.list.set_value(tree_iter, 4, speed)
+                    # If the download is being cancelled, return non-zero
+                    if self.dl_cancel:
+                        return 1
                 __progress.tot = []
                 curl.setopt(pycurl.NOPROGRESS, 0)
                 curl.setopt(pycurl.PROGRESSFUNCTION, __progress)
@@ -498,9 +502,12 @@ class GPutIO(object):
                 self.status.push(self.sb_ctxt["queue"], _("Downloading %s...") % fname)
                 try:
                     curl.perform()
-                except:
-                    traceback.print_exc(file=sys.stderr)
-                    sys.stderr.flush()
+                except pycurl.error, e:
+                    # Check that the download was not "aborted by callback",
+                    # i.e. cancelled by the user
+                    if e.args[0] != pycurl.E_ABORTED_BY_CALLBACK:
+                        traceback.print_exc(file=sys.stderr)
+                        sys.stderr.flush()
                 curl.close()
                 fp.close()
 
@@ -511,6 +518,10 @@ class GPutIO(object):
                 if size == total_size:
                     done = True
                     self.status.push(self.sb_ctxt["queue"], _("%s downloaded successfuly.") % fname)
+                elif self.dl_cancel:
+                    done = True
+                    self.status.push(self.sb_ctxt["queue"], _("Download of %s has been cancelled.") % fname)
+                    self.dl_cancel = False
                 else:
                     self.status.push(self.sb_ctxt["queue"], _("Download failed, trying again in a few seconds..."))
                     print "Something went wrong, trying again in a few seconds"
@@ -524,6 +535,10 @@ class GPutIO(object):
     def _download_remove(self, tree_iter):
         with gtk.gdk.lock:
             self.list.remove(tree_iter)
+
+    # Cancel the current download
+    def cancel_download(self, data=None):
+        self.dl_cancel = True
 
 
 if __name__ == "__main__":
