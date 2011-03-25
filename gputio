@@ -428,7 +428,8 @@ class GPutIO(object):
         while True:
             if self.dl_quit:
                 return
-            
+
+            # {{{ Get an item to download
             # Try to fetch the item with the lowest possible order index that
             # has not been downloaded yet from the ListStore
             tree_iter = None
@@ -447,7 +448,8 @@ class GPutIO(object):
                 self.dl_event.wait()
                 self.dl_event.clear()
                 continue
-
+            # }}}
+            # {{{ Prepare the required data
             # If we have something, grab more informations
             fname, url, total_size = self.list.get(tree_iter, 1, 2, 3)
 
@@ -463,14 +465,16 @@ class GPutIO(object):
             if os.path.isfile(name) and os.path.getsize(name) == total_size:
                 self.list.set_value(tree_iter, 4, total_size)
                 done = True
-            
+            # }}}
+            # {{{ Do the download
             # Not downloaded yet: do it
             while not done:
+                # {{{ Curl setup
                 size = 0
                 if os.path.isfile(name):
                     size = os.path.getsize(name)
                 fp = open(name, "ab")
-                
+
                 curl = pycurl.Curl()
                 curl.setopt(pycurl.URL, url)
                 curl.setopt(pycurl.WRITEDATA, fp)
@@ -484,38 +488,10 @@ class GPutIO(object):
                     curl.setopt(pycurl.RESUME_FROM, size+1)
 
                 # Progress callback
-                def __progress(dl_t, dl_d, up_t, up_d):
-                    # Use function attribute as a static variable. Store the
-                    # last values of timestamp + downloaded size, and use that
-                    # to compute the current download speed
-                    speed = 0.
-                    cur = (time.time(), dl_d)
-                    force_redisplay = False
-                    if len(__progress.tot) == 0:
-                        __progress.tot.append(cur)
-                    else:
-                        # Check if the previous one is older than a second
-                        last = __progress.tot[-1]
-                        if cur[0] - last[0] >= 1.:
-                            # Yes: update the variable
-                            __progress.tot.append(cur)
-                            __progress.tot = __progress.tot[-5:]
-                            first = __progress.tot[0]
-                            speed = (cur[1] - first[1]) / (cur[0] - first[0])
-                            force_redisplay = True
-                    # Update the counters
-                    self.list.set_value(tree_iter, 4, dl_d)
-                    if speed > 0.:
-                        self.list.set_value(tree_iter, 5, speed)
-                    if force_redisplay:
-                        self.tvd.queue_draw()
-                    # If the download is being cancelled, return non-zero
-                    if self.dl_cancel:
-                        return 1
-                __progress.tot = []
                 curl.setopt(pycurl.NOPROGRESS, 0)
-                curl.setopt(pycurl.PROGRESSFUNCTION, __progress)
-
+                curl.setopt(pycurl.PROGRESSFUNCTION, self._make_progress_callback(tree_iter))
+                # }}}
+                # {{{ Actual download
                 # Now do the download
                 self.status.push(self.sb_ctxt["queue"], _("Downloading %s...") % fname)
                 try:
@@ -528,7 +504,8 @@ class GPutIO(object):
                         sys.stderr.flush()
                 curl.close()
                 fp.close()
-
+                # }}}
+                # {{{ Check results
                 # Check if everything went fine
                 size = os.path.getsize(name)
                 self.list.set(tree_iter, 4, size, 5, 0.)
@@ -544,9 +521,44 @@ class GPutIO(object):
                     print "Something went wrong, trying again in a few seconds"
                     print "Got %d bytes, expected %d" % (size, total_size)
                     time.sleep(5)
+                # }}}
 
             # Download over: schedule its removal
             glib.timeout_add(15000, self._download_remove, tree_iter)
+            # }}}
+
+    # Create a progress callback that can be used while downloading tree_iter
+    def _make_progress_callback(self, tree_iter):
+        def __progress(dl_t, dl_d, up_t, up_d):
+            # Use function attribute as a static variable. Store the
+            # last values of timestamp + downloaded size, and use that
+            # to compute the current download speed
+            speed = 0.
+            cur = (time.time(), dl_d)
+            force_redisplay = False
+            if len(__progress.tot) == 0:
+                __progress.tot.append(cur)
+            else:
+                # Check if the previous one is older than a second
+                last = __progress.tot[-1]
+                if cur[0] - last[0] >= 1.:
+                    # Yes: update the variable
+                    __progress.tot.append(cur)
+                    __progress.tot = __progress.tot[-5:]
+                    first = __progress.tot[0]
+                    speed = (cur[1] - first[1]) / (cur[0] - first[0])
+                    force_redisplay = True
+            # Update the counters
+            self.list.set_value(tree_iter, 4, dl_d)
+            if speed > 0.:
+                self.list.set_value(tree_iter, 5, speed)
+            if force_redisplay:
+                self.tvd.queue_draw()
+            # If the download is being cancelled, return non-zero
+            if self.dl_cancel:
+                return 1
+        __progress.tot = []
+        return __progress
 
     # Remove a finished download from the ListStore
     def _download_remove(self, tree_iter):
