@@ -549,21 +549,25 @@ class GPutIO(object):
                 size = os.path.getsize(name)
                 self.list.set(tree_iter, 4, size, 5, 0.)
                 if size == total_size:
+                    # Download went fine: schedule its removal from the queue
                     done = True
                     self.status.push(self.sb_ctxt["queue"], _("%s downloaded successfuly.") % fname)
+                    glib.timeout_add(10000, self._download_remove, tree_iter)
+
                 elif self.dl_cancel:
+                    # Download was cancelled: remove it now
                     done = True
                     self.status.push(self.sb_ctxt["queue"], _("Download of %s has been cancelled.") % fname)
                     self.dl_cancel = False
+                    self._download_remove(tree_iter)
+
                 else:
+                    # Download failed: try again soon
                     self.status.push(self.sb_ctxt["queue"], _("Download failed, trying again in a few seconds..."))
                     print "Something went wrong, trying again in a few seconds"
                     print "Got %d bytes, expected %d" % (size, total_size)
                     time.sleep(5)
                 # }}}
-
-            # Download over: schedule its removal
-            glib.timeout_add(15000, self._download_remove, tree_iter)
             # }}}
 
     # Create a progress callback that can be used while downloading tree_iter
