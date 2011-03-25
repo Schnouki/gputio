@@ -1,0 +1,18 @@
+creator: Thomas Jost <schnouki@schnouki.net>
+
+
+reporter: Thomas Jost <schnouki@schnouki.net>
+
+
+severity: wishlist
+
+
+status: open
+
+
+summary: If TreeIters are still valid after another row has been removed, then the
+  code for remove_downlaod() can be simplified
+
+
+time: Fri, 25 Mar 2011 13:10:31 +0000
+

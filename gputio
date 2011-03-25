@@ -521,7 +521,7 @@ class GPutIO(object):
                 curl.setopt(pycurl.MAXREDIRS, 10)
                 curl.setopt(pycurl.UNRESTRICTED_AUTH, 1)
                 if size > 0:
-                    curl.setopt(pycurl.RESUME_FROM, size+1)
+                    curl.setopt(pycurl.RESUME_FROM, size)
 
                 # Progress callback
                 curl.setopt(pycurl.NOPROGRESS, 0)

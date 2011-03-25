@@ -1,0 +1,17 @@
+creator: Thomas Jost <schnouki@schnouki.net>
+
+
+reporter: Thomas Jost <schnouki@schnouki.net>
+
+
+severity: minor
+
+
+status: open
+
+
+summary: Wrong progress display when restarting an interrupted download
+
+
+time: Fri, 25 Mar 2011 13:08:09 +0000
+
