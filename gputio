@@ -314,7 +314,7 @@ class GPutIO(object):
 
     # Refresh the TreeView using the Put.io API
     def refresh(self, data=None):
-        t = threading.Thread(target=self._get_folder, args=(0, None, ""))
+        t = threading.Thread(target=self._fetch_folder_data, args=(0, None, ""))
         self.status.push(self.sb_ctxt["files"], _("Refreshing files list..."))
         self.tree.clear()
         t.start()
@@ -366,6 +366,32 @@ class GPutIO(object):
         return pb
     # }}}
     # {{{ Internal functions dealing with the data stores
+    # Fetch data from a Put.io folder and add it in the TreeStore
+    def _fetch_folder_data(self, root, parent, path):
+        try:
+            items = self.api.get_items(parent_id=root, limit=0)
+        except putio.PutioError:
+            return
+        dirs = []
+        for it in items:
+            pb = self._get_icon(TYPE_TO_ICON[it.type])                
+            it_path = os.path.join(path, it.name)
+            tree_iter = self.tree.append(parent,
+                                         (it.name, long(it.size), pb, int(it.id),
+                                          it.download_url, it_path))
+            if it.is_dir:
+                dirs.append((it.id, tree_iter, it_path))
+
+        for (it_id, tree_iter, it_path) in dirs:
+            try:
+                self._fetch_folder_data(it_id, tree_iter, it_path)
+            except putio.PutioError, e:
+                if str(e) != "You have no items to show.":
+                    raise e
+
+        if parent is None:
+            self.status.push(self.sb_ctxt["files"], _("Files list updated."))
+
     # Grab data needed to download the specified tree_iter and its children from
     # the TreeStore
     def _get_download(self, model, tree_iter):
@@ -380,32 +406,6 @@ class GPutIO(object):
         else:
             size, url, path = model.get(tree_iter, 1, 4, 5)
             return [(size, url, path)]
-
-    # Fetch data from a Put.io folder and add it in the TreeStore
-    def _get_folder(self, root, parent, path):
-        try:
-            items = self.api.get_items(parent_id=root, limit=0)
-        except putio.PutioError:
-            return
-        dirs = []
-        for it in items:
-            pb = self._get_icon(TYPE_TO_ICON[it.type])                
-            it_path = os.path.join(path, it.name)
-            tree_iter = self.tree.append(parent,
-                                         (it.name, long(it.size), pb, int(it.id),
-                                          it.download_url, it_path))
-            if it.is_dir:
-                dirs.append((it.id, tree_iter, it_path))
-        
-        for (it_id, tree_iter, it_path) in dirs:
-            try:
-                self._get_folder(it_id, tree_iter, it_path)
-            except putio.PutioError, e:
-                if str(e) != "You have no items to show.":
-                    raise e
-
-        if parent is None:
-            self.status.push(self.sb_ctxt["files"], _("Files list updated."))
 
     # Get the size of an item in the TreeStore
     def _get_size(self, model, iter):
