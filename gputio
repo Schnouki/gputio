@@ -227,8 +227,10 @@ class GPutIO(object):
 
     # Quit the app
     def destroy(self, widget, data=None):
+        self.dl_cancel = True
         self.dl_quit = True
         self.dl_event.set()
+        self.dl_thr.join()
         gtk.main_quit()
     # }}}
     # {{{ CellRenderer callbacks
@@ -315,6 +317,7 @@ class GPutIO(object):
     # Refresh the TreeView using the Put.io API
     def refresh(self, data=None):
         t = threading.Thread(target=self._fetch_folder_data, args=(0, None, ""))
+        t.daemon = True
         self.status.push(self.sb_ctxt["files"], _("Refreshing files list..."))
         self.tree.clear()
         t.start()
@@ -425,10 +428,7 @@ class GPutIO(object):
     # Download manager thread
     def _download_thread(self):
         # Loop forever
-        while True:
-            if self.dl_quit:
-                return
-
+        while not self.dl_quit:
             # {{{ Get an item to download
             # Try to fetch the item with the lowest possible order index that
             # has not been downloaded yet from the ListStore
