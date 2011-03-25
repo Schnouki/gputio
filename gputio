@@ -15,6 +15,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
+# {{{ Imports and constants
 import ConfigParser
 import gettext
 import locale
@@ -48,10 +49,12 @@ TYPE_TO_ICON = {
     "text":       "txt",
     "swf":        "shellscript",
     }
+# }}}
 
 class GPutIO(object):
+    # {{{ Initialization
     def __init__(self, username, password, apikey, apisecret):
-        # Main window
+        # {{{ Main window
         self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.win.set_title("GPutio")
         self.win.set_default_size(640, 480)
@@ -60,16 +63,16 @@ class GPutIO(object):
         self.win.add(vbox)
         vpaned = gtk.VPaned()
         vbox.pack_start(vpaned)
-
-        # Status bar
+        # }}}
+        # {{{ Status bar
         self.status = gtk.Statusbar()
         vbox.pack_start(self.status, expand=False)
         self.sb_ctxt = {}
         self.sb_ctxt["files"] = self.status.get_context_id("files")
         self.sb_ctxt["hint"]  = self.status.get_context_id("hint")
         self.sb_ctxt["queue"] = self.status.get_context_id("queue")
-
-        # Frames, alignments, and horizontal boxes
+        # }}}
+        # {{{ Frames, alignments, and horizontal boxes
         frm_files = gtk.Frame(_("<b>Your files</b>"))
         frm_files.get_label_widget().set_use_markup(True)
         align_files = gtk.Alignment(.5, .5, 1., 1.)
@@ -87,15 +90,8 @@ class GPutIO(object):
         vpaned.pack2(frm_dl, resize=False)
         hbox_dl = gtk.HBox()
         align_dl.add(hbox_dl)
-
-        # Data stores
-        # - TreeStore for the files tree: name, size, icon, ID, URL, full path
-        self.tree = gtk.TreeStore(str, long, gtk.gdk.Pixbuf, int, str, str)
-        # - ListStore for the downloads: order, name, URL, total size, downloaded size, current speed
-        self.list = gtk.ListStore(int, str, str, long, long, float)
-        self.dl_id = 0
-
-        # Frames and scrolled windows for TreeViews
+        # }}}
+        # {{{ Frames and scrolled windows for TreeViews
         ff = gtk.Frame()
         hbox_files.pack_start(ff)
         swf = gtk.ScrolledWindow()
@@ -107,8 +103,8 @@ class GPutIO(object):
         swd = gtk.ScrolledWindow()
         swd.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         fd.add(swd)
-
-        # Toolbars
+        # }}}
+        # {{{ Toolbars
         tb_files = gtk.Toolbar()
         tb_files.set_orientation(gtk.ORIENTATION_VERTICAL)
         tb_files.set_style(gtk.TOOLBAR_ICONS)
@@ -127,6 +123,14 @@ class GPutIO(object):
 
         tb_dl.insert_stock(gtk.STOCK_CANCEL, _("Cancel current download"), None, self.cancel_download, None, -1)
         tb_dl.insert_stock(gtk.STOCK_DELETE, _("Remove the selection from the download queue"), None, None, None, -1)
+        # }}}
+        # {{{ TreeViews and data stores
+        # Data stores
+        # - TreeStore for the files tree: name, size, icon, ID, URL, full path
+        self.tree = gtk.TreeStore(str, long, gtk.gdk.Pixbuf, int, str, str)
+        # - ListStore for the downloads: order, name, URL, total size, downloaded size, current speed
+        self.list = gtk.ListStore(int, str, str, long, long, float)
+        self.dl_id = 0
 
         # TreeView for the files tree
         self.tvf = gtk.TreeView(self.tree)
@@ -198,41 +202,63 @@ class GPutIO(object):
         # Default sorting order
         self.tree.set_sort_column_id(0, gtk.SORT_ASCENDING)
         self.list.set_sort_column_id(0, gtk.SORT_ASCENDING)
-
-        # API init
+        # }}}
+        # {{{ API init
         self.api = putio.Api(apikey, apisecret)
         self.username = username
         self.password = password
-
-        # Icons
+        # }}}
+        # {{{ Icons
         self.theme = gtk.icon_theme_get_default()
         self.icons = {}
-
-        # Download manager
+        # }}}
+        # {{{ Download manager
         self.dl_event = threading.Event()
         self.dl_cancel = False
         self.dl_quit = False
         self.dl_thr = threading.Thread(target=self._download_thread)
         self.dl_thr.daemon = True
         self.dl_thr.start()
-
+        # }}}
+        # {{{ Application startup
         self.win.show_all()
-
         self.refresh()
+        # }}}
 
-    # Get the size of an item
-    def _get_size(self, model, iter):
-        # Is it a file or a folder?
-        if model.iter_has_child(iter):
-            # Folder
-            size = 0
-            for i in xrange(model.iter_n_children(iter)):
-                child = model.iter_nth_child(iter, i)
-                size += self._get_size(model, child)
-            return size
-        else:
-            # File
-            return model.get_value(iter, 1)
+    # Quit the app
+    def destroy(self, widget, data=None):
+        self.dl_quit = True
+        self.dl_event.set()
+        gtk.main_quit()
+    # }}}
+    # {{{ CellRenderer callbacks
+    # Render the ETA of a download in a CellRenderer
+    def _render_eta(self, col, cell, model, iter, data=None):
+        total_size, size, speed = model.get(iter, 3, 4, 5)
+        eta = []
+        if speed > .001:
+            eta_s = int((total_size - size) / speed)
+            eta_m, s = divmod(eta_s, 60)
+            eta_h, m = divmod(eta_m, 60)
+            eta_d, h = divmod(eta_h, 24)
+            y, d = divmod(eta_d, 365)
+            if y > 0:
+                eta.append(locale.format_string(_("%d y"), y))
+            if d > 0:
+                eta.append(locale.format_string(_("%d d"), d))
+            if h > 0:
+                eta.append(locale.format_string(_("%d h"), h))
+            if m > 0:
+                eta.append(locale.format_string(_("%d m"), m))
+            if s > 0 or len(eta) == 0:
+                eta.append(locale.format_string(_("%d s"), s))
+        eta = " ".join(eta)
+        cell.set_property("text", eta)
+
+    # Render the progress of a download in a CellRenderer
+    def _render_progress(self, col, cell, model, iter, data=None):
+        total, downloaded = model.get(iter, 3, 4)
+        cell.set_property("value", 100.*downloaded/total)
 
     # Render a file size in a CellRenderer
     def _render_size(self, col, cell, model, iter, data=None):
@@ -261,78 +287,11 @@ class GPutIO(object):
         else:
             speed = locale.format_string(_("%.1f MB/s"), speed/(1024.**2), True)
         cell.set_property("text", speed)
-
-    # Render the progress of a download in a CellRenderer
-    def _render_progress(self, col, cell, model, iter, data=None):
-        total, downloaded = model.get(iter, 3, 4)
-        cell.set_property("value", 100.*downloaded/total)
-
-    # Render the ETA of a download in a CellRenderer
-    def _render_eta(self, col, cell, model, iter, data=None):
-        total_size, size, speed = model.get(iter, 3, 4, 5)
-        eta = []
-        if speed > .001:
-            eta_s = int((total_size - size) / speed)
-            eta_m, s = divmod(eta_s, 60)
-            eta_h, m = divmod(eta_m, 60)
-            eta_d, h = divmod(eta_h, 24)
-            y, d = divmod(eta_d, 365)
-            if y > 0:
-                eta.append(locale.format_string(_("%d y"), y))
-            if d > 0:
-                eta.append(locale.format_string(_("%d d"), d))
-            if h > 0:
-                eta.append(locale.format_string(_("%d h"), h))
-            if m > 0:
-                eta.append(locale.format_string(_("%d m"), m))
-            if s > 0 or len(eta) == 0:
-                eta.append(locale.format_string(_("%d s"), s))
-        eta = " ".join(eta)
-        cell.set_property("text", eta)
-
-    # Refresh the TreeView using the Put.io API
-    def refresh(self, data=None):
-        t = threading.Thread(target=self._get_folder, args=(0, None, ""))
-        self.status.push(self.sb_ctxt["files"], _("Refreshing files list..."))
-        self.tree.clear()
-        t.start()
-
-    # Fetch data from a Put.io folder and add it in the TreeStore
-    def _get_folder(self, root, parent, path):
-        try:
-            items = self.api.get_items(parent_id=root, limit=0)
-        except putio.PutioError:
-            return
-        dirs = []
-        for it in items:
-            pb = self._get_icon(TYPE_TO_ICON[it.type])                
-            it_path = os.path.join(path, it.name)
-            tree_iter = self.tree.append(parent,
-                                         (it.name, long(it.size), pb, int(it.id),
-                                          it.download_url, it_path))
-            if it.is_dir:
-                dirs.append((it.id, tree_iter, it_path))
-        
-        for (it_id, tree_iter, it_path) in dirs:
-            try:
-                self._get_folder(it_id, tree_iter, it_path)
-            except putio.PutioError, e:
-                if str(e) != "You have no items to show.":
-                    raise e
-
-        if parent is None:
-            self.status.push(self.sb_ctxt["files"], _("Files list updated."))
-
-    # Get an icon from the default theme, using a cache if possible
-    def _get_icon(self, name):
-        # Try from cache
-        if name in self.icons:
-            return self.icons[name]
-
-        # Not in cache --> try to get it from Gtk and cache it
-        pb = self.theme.load_icon(name, 16, 0)
-        self.icons[name] = pb
-        return pb
+    # }}}
+    # {{{ Button callbacks
+    # Cancel the current download
+    def cancel_download(self, data=None):
+        self.dl_cancel = True
 
     # Download selected items
     def download(self, data=None):
@@ -353,19 +312,12 @@ class GPutIO(object):
 
         self.dl_event.set()
 
-    # Grab data needed to download the specified tree_iter and its children
-    def _get_download(self, model, tree_iter):
-        if model.iter_has_child(tree_iter):
-            tab = []
-            it = model.iter_children(tree_iter)
-            while it is not None:
-                t = self._get_download(model, it)
-                tab.extend(t)
-                it = model.iter_next(it)
-            return tab
-        else:
-            size, url, path = model.get(tree_iter, 1, 4, 5)
-            return [(size, url, path)]
+    # Refresh the TreeView using the Put.io API
+    def refresh(self, data=None):
+        t = threading.Thread(target=self._get_folder, args=(0, None, ""))
+        self.status.push(self.sb_ctxt["files"], _("Refreshing files list..."))
+        self.tree.clear()
+        t.start()
 
     # Remove selected items
     def remove(self, data=None):
@@ -400,12 +352,76 @@ class GPutIO(object):
             self.refresh()
         dlg.destroy()
 
-    # Quit the app
-    def destroy(self, widget, data=None):
-        self.dl_quit = True
-        self.dl_event.set()
-        gtk.main_quit()
+    # }}}
+    # {{{ Internal (boring) stuff
+    # Get an icon from the default theme, using a cache if possible
+    def _get_icon(self, name):
+        # Try from cache
+        if name in self.icons:
+            return self.icons[name]
 
+        # Not in cache --> try to get it from Gtk and cache it
+        pb = self.theme.load_icon(name, 16, 0)
+        self.icons[name] = pb
+        return pb
+    # }}}
+    # {{{ Internal functions dealing with the data stores
+    # Grab data needed to download the specified tree_iter and its children from
+    # the TreeStore
+    def _get_download(self, model, tree_iter):
+        if model.iter_has_child(tree_iter):
+            tab = []
+            it = model.iter_children(tree_iter)
+            while it is not None:
+                t = self._get_download(model, it)
+                tab.extend(t)
+                it = model.iter_next(it)
+            return tab
+        else:
+            size, url, path = model.get(tree_iter, 1, 4, 5)
+            return [(size, url, path)]
+
+    # Fetch data from a Put.io folder and add it in the TreeStore
+    def _get_folder(self, root, parent, path):
+        try:
+            items = self.api.get_items(parent_id=root, limit=0)
+        except putio.PutioError:
+            return
+        dirs = []
+        for it in items:
+            pb = self._get_icon(TYPE_TO_ICON[it.type])                
+            it_path = os.path.join(path, it.name)
+            tree_iter = self.tree.append(parent,
+                                         (it.name, long(it.size), pb, int(it.id),
+                                          it.download_url, it_path))
+            if it.is_dir:
+                dirs.append((it.id, tree_iter, it_path))
+        
+        for (it_id, tree_iter, it_path) in dirs:
+            try:
+                self._get_folder(it_id, tree_iter, it_path)
+            except putio.PutioError, e:
+                if str(e) != "You have no items to show.":
+                    raise e
+
+        if parent is None:
+            self.status.push(self.sb_ctxt["files"], _("Files list updated."))
+
+    # Get the size of an item in the TreeStore
+    def _get_size(self, model, iter):
+        # Is it a file or a folder?
+        if model.iter_has_child(iter):
+            # Folder
+            size = 0
+            for i in xrange(model.iter_n_children(iter)):
+                child = model.iter_nth_child(iter, i)
+                size += self._get_size(model, child)
+            return size
+        else:
+            # File
+            return model.get_value(iter, 1)
+    # }}}
+    # {{{ Download manager
     # Download manager thread
     def _download_thread(self):
         # Loop forever
@@ -526,6 +542,7 @@ class GPutIO(object):
                 else:
                     self.status.push(self.sb_ctxt["queue"], _("Download failed, trying again in a few seconds..."))
                     print "Something went wrong, trying again in a few seconds"
+                    print "Got %d bytes, expected %d" % (size, total_size)
                     time.sleep(5)
 
             # Download over: schedule its removal
@@ -534,11 +551,7 @@ class GPutIO(object):
     # Remove a finished download from the ListStore
     def _download_remove(self, tree_iter):
         self.list.remove(tree_iter)
-
-    # Cancel the current download
-    def cancel_download(self, data=None):
-        self.dl_cancel = True
-
+    # }}}
 
 if __name__ == "__main__":
     # i18n
