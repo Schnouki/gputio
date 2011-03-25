@@ -1,0 +1,7 @@
+[account]
+username = PUTIO_USERNAME
+password = PUTIO_PASSWORD
+
+[api]
+key = API_KEY
+secret = API_SECRET

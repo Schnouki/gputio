@@ -54,8 +54,6 @@ class install_data(_install_data):
             dest_dir = os.path.join("share", "locale", lang, "LC_MESSAGES")
             self.data_files.append((dest_dir, [mo]))
 
-distutils.dist.Distribution.has_data_files = lambda self: True
-
 setup(name="gputio",
       version="0.1",
       description="A desktop client for Put.io",
@@ -72,7 +70,7 @@ setup(name="gputio",
                    "Topic :: Communications :: File Sharing",
                    "Topic :: Internet :: WWW/HTTP",
                    ],
-      data_files = [],
+      data_files = [(os.path.join("share", "gputio"), ["gputio.conf.sample"])],
       cmdclass={
           "build": build,
           "build_mo": build_mo,

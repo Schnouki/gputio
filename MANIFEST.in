@@ -1,3 +1,4 @@
 include gputio
+include gputio.conf.sample
 include README.md
 include po/*.po

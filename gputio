@@ -608,10 +608,38 @@ class GPutIO(object):
 if __name__ == "__main__":
     # i18n
     gettext.install("gputio", unicode=True, names=("ngettext",))
+
+    # Find config file, trying to be XDG compliant:
+    # http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+
+    # First find all the dirs where the config file would be, ending with the
+    # current one
+    dirs = []
+    if "XDG_CONFIG_HOME" in os.environ and len(os.environ["XDG_CONFIG_HOME"]) > 0:
+        d = os.path.join(os.environ["XDG_CONFIG_HOME"], "gputio")
+        dirs.append(d)
+    else:
+        dirs.append(os.path.expanduser("~/.config"))
+    if "XDG_CONFIG_DIRS" in os.environ and len(os.environ["XDG_CONFIG_DIRS"]) > 0:
+        d = [os.path.join(d, "gputio") for d in os.environ["XDG_CONFIG_DIRS"].split(":")]
+        dirs.extend(d)
+    else:
+        dirs.append("/etc/xdg/gputio")
+    dirs.append(".")
+
+    # Then detect which of these dirs actually have a suitable config file
+    fns = [os.path.join(d, "gputio.conf") for d in dirs]
+    fns = [fn for fn in fns if os.path.isfile(fn)]
+
+    # Exit if no configuration file was found
+    if len(fns) == 0:
+        print >>sys.stderr, "No configuration file was found! Please create one and try again."
+        print >>sys.stderr, "(An sample configuration file is provided with GPutio.)"
+        sys.exit(1)
     
     # Read config file
     config = ConfigParser.SafeConfigParser()
-    config.read(("config",))
+    config.read((fns[0],))
     username = config.get("account", "username")
     password = config.get("account", "password")
     apikey = config.get("api", "key")
