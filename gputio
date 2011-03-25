@@ -91,8 +91,9 @@ class GPutIO(object):
         # Data stores
         # - TreeStore for the files tree: name, size, icon, ID, URL, full path
         self.tree = gtk.TreeStore(str, long, gtk.gdk.Pixbuf, int, str, str)
-        # - ListStore for the downloads: name, URL, total size, downloaded size, current speed
-        self.list = gtk.ListStore(str, str, long, long, float)
+        # - ListStore for the downloads: order, name, URL, total size, downloaded size, current speed
+        self.list = gtk.ListStore(int, str, str, long, long, float)
+        self.dl_id = 0
 
         # Frames and scrolled windows for TreeViews
         ff = gtk.Frame()
@@ -138,7 +139,7 @@ class GPutIO(object):
         # TreeView for the downloads list
         self.tvd = gtk.TreeView(self.list)
         swd.add(self.tvd)
-        self.tvd.set_search_column(0)
+        self.tvd.set_search_column(1)
         self.tvd.set_rules_hint(True)
 
         # Cell renderers
@@ -166,22 +167,22 @@ class GPutIO(object):
         tvc.set_sort_column_id(1)
         self.tvf.append_column(tvc)
 
-        tvc = gtk.TreeViewColumn(_("File name"), cell_txt, text=0)
-        tvc.set_sort_column_id(0)
+        tvc = gtk.TreeViewColumn(_("File name"), cell_txt, text=1)
+        tvc.set_sort_column_id(1)
         tvc.set_expand(True)
         tvc.set_resizable(True)
         self.tvd.append_column(tvc)
 
         tvc = gtk.TreeViewColumn(_("Progress"), cell_prog)
         tvc.set_cell_data_func(cell_prog, self._render_progress)
-        tvc.set_sort_column_id(3)
+        tvc.set_sort_column_id(4)
         tvc.set_min_width(150)
         tvc.set_resizable(True)
         self.tvd.append_column(tvc)
 
         tvc = gtk.TreeViewColumn(_("Speed"), cell_txt_right)
         tvc.set_cell_data_func(cell_txt_right, self._render_speed)
-        tvc.set_sort_column_id(4)
+        tvc.set_sort_column_id(5)
         tvc.set_min_width(100)
         tvc.set_resizable(True)
         self.tvd.append_column(tvc)
@@ -250,7 +251,7 @@ class GPutIO(object):
 
     # Render a download speed in a CellRenderer
     def _render_speed(self, col, cell, model, iter, data=None):
-        speed = model.get_value(iter, 4)
+        speed = model.get_value(iter, 5)
         if speed <= 0.:
             speed = ""
         elif speed < 1024.:
@@ -263,12 +264,12 @@ class GPutIO(object):
 
     # Render the progress of a download in a CellRenderer
     def _render_progress(self, col, cell, model, iter, data=None):
-        total, downloaded = model.get(iter, 2, 3)
+        total, downloaded = model.get(iter, 3, 4)
         cell.set_property("value", 100.*downloaded/total)
 
     # Render the ETA of a download in a CellRenderer
     def _render_eta(self, col, cell, model, iter, data=None):
-        total_size, size, speed = model.get(iter, 2, 3, 4)
+        total_size, size, speed = model.get(iter, 3, 4, 5)
         eta = []
         if speed > .001:
             eta_s = int((total_size - size) / speed)
@@ -347,7 +348,8 @@ class GPutIO(object):
 
         for size, url, path in dls:
             if len(url) > 0:
-                self.list.append((path, url, size, 0, 0.))
+                self.list.append((self.dl_id, path, url, size, 0, 0.))
+                self.dl_id += 1
 
         self.dl_event.set()
 
@@ -411,10 +413,18 @@ class GPutIO(object):
             if self.dl_quit:
                 return
             
-            # Try to fetch an item that has not been downloaded yet from the ListStore
-            tree_iter = self.list.get_iter_first()
-            while tree_iter is not None and self.list.get_value(tree_iter, 3) != 0:
-                tree_iter = self.list.iter_next(tree_iter)
+            # Try to fetch the item with the lowest possible order index that
+            # has not been downloaded yet from the ListStore
+            tree_iter = None
+            order = -1
+            cur_tree_iter = self.list.get_iter_first()
+            while cur_tree_iter is not None:
+                if self.list.get_value(cur_tree_iter, 4) == 0:
+                    cur_order = self.list.get_value(cur_tree_iter, 0)
+                    if tree_iter is None or cur_order < order:
+                        tree_iter = cur_tree_iter
+                        order = cur_order
+                cur_tree_iter = self.list.iter_next(cur_tree_iter)
 
             # If nothing is available, wait until something happens and try again
             if tree_iter is None:
@@ -423,7 +433,7 @@ class GPutIO(object):
                 continue
 
             # If we have something, grab more informations
-            fname, url, total_size = self.list.get(tree_iter, 0, 1, 2)
+            fname, url, total_size = self.list.get(tree_iter, 1, 2, 3)
 
             # Construct an absolute path
             name = os.path.join(os.path.expanduser("~"), "Downloads", fname)
@@ -435,7 +445,7 @@ class GPutIO(object):
             # Already downloaded?
             done = False
             if os.path.isfile(name) and os.path.getsize(name) == total_size:
-                self.list.set_value(tree_iter, 3, total_size)
+                self.list.set_value(tree_iter, 4, total_size)
                 done = True
             
             # Not downloaded yet: do it
@@ -478,9 +488,9 @@ class GPutIO(object):
                             speed = (cur[1] - first[1]) / (cur[0] - first[0])
                             force_redisplay = True
                     # Update the counters
-                    self.list.set_value(tree_iter, 3, dl_d)
+                    self.list.set_value(tree_iter, 4, dl_d)
                     if speed > 0.:
-                        self.list.set_value(tree_iter, 4, speed)
+                        self.list.set_value(tree_iter, 5, speed)
                     if force_redisplay:
                         self.tvd.queue_draw()
                     # If the download is being cancelled, return non-zero
@@ -505,7 +515,7 @@ class GPutIO(object):
 
                 # Check if everything went fine
                 size = os.path.getsize(name)
-                self.list.set(tree_iter, 3, size, 4, 0.)
+                self.list.set(tree_iter, 4, size, 5, 0.)
                 if size == total_size:
                     done = True
                     self.status.push(self.sb_ctxt["queue"], _("%s downloaded successfuly.") % fname)
