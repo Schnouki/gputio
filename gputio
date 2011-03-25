@@ -216,6 +216,7 @@ class GPutIO(object):
         self.dl_event = threading.Event()
         self.dl_cancel = False
         self.dl_quit = False
+        self.dl_cur_id = -1
         self.dl_thr = threading.Thread(target=self._download_thread)
         self.dl_thr.daemon = True
         self.dl_thr.start()
@@ -293,7 +294,10 @@ class GPutIO(object):
     # {{{ Button callbacks
     # Cancel the current download
     def cancel_download(self, data=None):
-        self.dl_cancel = True
+        if self.dl_cur_id >= 0:
+            self.dl_cancel = True
+        else:
+            self.status.push(self.sb_ctxt["queue"], _("Nothing to cancel."))
 
     # Download selected items
     def download(self, data=None):
@@ -494,6 +498,7 @@ class GPutIO(object):
                 # {{{ Actual download
                 # Now do the download
                 self.status.push(self.sb_ctxt["queue"], _("Downloading %s...") % fname)
+                self.dl_cur_id = order
                 try:
                     curl.perform()
                 except pycurl.error, e:
@@ -502,8 +507,10 @@ class GPutIO(object):
                     if e.args[0] != pycurl.E_ABORTED_BY_CALLBACK:
                         traceback.print_exc(file=sys.stderr)
                         sys.stderr.flush()
-                curl.close()
-                fp.close()
+                finally:
+                    self.dl_cur_id = -1
+                    curl.close()
+                    fp.close()
                 # }}}
                 # {{{ Check results
                 # Check if everything went fine
