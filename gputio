@@ -122,7 +122,7 @@ class GPutIO(object):
         tb_files.insert_stock(gtk.STOCK_DELETE, _("Remove the selection"), None, self.remove, None, -1)
 
         tb_dl.insert_stock(gtk.STOCK_CANCEL, _("Cancel current download"), None, self.cancel_download, None, -1)
-        tb_dl.insert_stock(gtk.STOCK_DELETE, _("Remove the selection from the download queue"), None, None, None, -1)
+        tb_dl.insert_stock(gtk.STOCK_DELETE, _("Remove the selection from the download queue"), None, self.remove_download, None, -1)
         # }}}
         # {{{ TreeViews and data stores
         # Data stores
@@ -145,6 +145,7 @@ class GPutIO(object):
         swd.add(self.tvd)
         self.tvd.set_search_column(1)
         self.tvd.set_rules_hint(True)
+        self.tvd.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
 
         # Cell renderers
         cell_txt = gtk.CellRendererText()
@@ -359,6 +360,37 @@ class GPutIO(object):
             self.refresh()
         dlg.destroy()
 
+    # Remove selected items from the download queue
+    def remove_download(self, data=None):
+        sel = self.tvd.get_selection()
+        model, rows = sel.get_selected_rows()
+        ids = []
+        removed = 0
+
+        for row in rows:
+            it = model.get_iter(row)
+            id_ = model.get_value(it, 0)
+            if id_ != self.dl_cur_id:
+                ids.append(id_)
+
+        it = model.get_iter_first()
+        while it is not None:
+            id_ = model.get_value(it, 0)
+            nit = model.iter_next(it)
+            if id_ in ids:
+                removed += 1
+                model.remove(it)
+            it = nit
+
+        if len(ids) == removed:
+            self.status.push(self.sb_ctxt["queue"],
+                             ngettext("1 download cancelled",
+                                      "%(rm)d downloads cancelled", removed) % {"rm": removed})
+        else:
+            self.status.push(self.sb_ctxt["queue"],
+                             ngettext("1 download cancelled. (Warning: len(ids)=%(ids)d)",
+                                      "%(rm)d downloads cancelled. (Warning: len(ids)=%(ids)d)",
+                                      removed) % {"rm": removed, "ids": len(ids)})
     # }}}
     # {{{ Internal (boring) stuff
     # Get an icon from the default theme, using a cache if possible
@@ -574,7 +606,7 @@ class GPutIO(object):
 
 if __name__ == "__main__":
     # i18n
-    gettext.install("gputio")
+    gettext.install("gputio", unicode=True, names=("ngettext",))
     
     # Read config file
     config = ConfigParser.SafeConfigParser()
