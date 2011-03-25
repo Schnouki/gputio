@@ -525,7 +525,7 @@ class GPutIO(object):
 
                 # Progress callback
                 curl.setopt(pycurl.NOPROGRESS, 0)
-                curl.setopt(pycurl.PROGRESSFUNCTION, self._make_progress_callback(tree_iter))
+                curl.setopt(pycurl.PROGRESSFUNCTION, self._make_progress_callback(tree_iter, size))
                 # }}}
                 # {{{ Actual download
                 # Now do the download
@@ -567,12 +567,13 @@ class GPutIO(object):
             # }}}
 
     # Create a progress callback that can be used while downloading tree_iter
-    def _make_progress_callback(self, tree_iter):
+    def _make_progress_callback(self, tree_iter, dl_offset):
         def __progress(dl_t, dl_d, up_t, up_d):
             # Use function attribute as a static variable. Store the
             # last values of timestamp + downloaded size, and use that
             # to compute the current download speed
             speed = 0.
+            dl_d += dl_offset
             cur = (time.time(), dl_d)
             force_redisplay = False
             if len(__progress.tot) == 0:
