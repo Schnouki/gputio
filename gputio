@@ -482,6 +482,8 @@ class GPutIO(object):
             # }}}
             # {{{ Prepare the required data
             # If we have something, grab more informations
+            tree_path = self.list.get_path(tree_iter)
+            tree_ref = gtk.TreeRowReference(self.list, tree_path)
             fname, url, total_size = self.list.get(tree_iter, 1, 2, 3)
 
             # Construct an absolute path
@@ -547,14 +549,14 @@ class GPutIO(object):
                     # Download went fine: schedule its removal from the queue
                     done = True
                     self.status.push(self.sb_ctxt["queue"], _("%s downloaded successfuly.") % fname)
-                    glib.timeout_add(10000, self._download_remove, tree_iter)
+                    glib.timeout_add(10000, self._download_remove, tree_ref)
 
                 elif self.dl_cancel:
                     # Download was cancelled: remove it now
                     done = True
                     self.status.push(self.sb_ctxt["queue"], _("Download of %s has been cancelled.") % fname)
                     self.dl_cancel = False
-                    self._download_remove(tree_iter)
+                    self._download_remove(tree_ref)
 
                 else:
                     # Download failed: try again soon
@@ -600,8 +602,11 @@ class GPutIO(object):
         return __progress
 
     # Remove a finished download from the ListStore
-    def _download_remove(self, tree_iter):
-        self.list.remove(tree_iter)
+    def _download_remove(self, tree_ref):
+        path = tree_ref.get_path()
+        if path is not None:
+            tree_iter = self.list.get_iter(path)
+            self.list.remove(tree_iter)
     # }}}
 
 if __name__ == "__main__":
