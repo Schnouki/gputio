@@ -116,13 +116,32 @@ class GPutIO(object):
         hbox_dl.pack_start(tb_dl, expand=False)
 
         # Toolbar buttons
-        tb_files.insert_stock(gtk.STOCK_REFRESH, _("Refresh files list"), None, self.refresh, None, -1)
-        tb_files.append_space()
-        tb_files.insert_stock(gtk.STOCK_SAVE, _("Download the selection"), None, self.download, None, -1)
-        tb_files.insert_stock(gtk.STOCK_DELETE, _("Remove the selection"), None, self.remove, None, -1)
+        ti = gtk.ToolButton(gtk.STOCK_REFRESH)
+        ti.set_tooltip_text(_("Refresh files list"))
+        ti.connect("clicked", self.refresh)
+        tb_files.insert(ti, -1)
 
-        tb_dl.insert_stock(gtk.STOCK_CANCEL, _("Cancel current download"), None, self.cancel_download, None, -1)
-        tb_dl.insert_stock(gtk.STOCK_DELETE, _("Remove the selection from the download queue"), None, self.remove_download, None, -1)
+        tb_files.insert(gtk.SeparatorToolItem(), -1)
+
+        ti = gtk.ToolButton(gtk.STOCK_SAVE)
+        ti.set_tooltip_text(_("Download the selection"))
+        ti.connect("clicked", self.download)
+        tb_files.insert(ti, -1)
+
+        ti = gtk.ToolButton(gtk.STOCK_DELETE)
+        ti.set_tooltip_text(_("Remove the selection"))
+        ti.connect("clicked", self.remove)
+        tb_files.insert(ti, -1)
+
+        ti = gtk.ToolButton(gtk.STOCK_CANCEL)
+        ti.set_tooltip_text(_("Cancel current download"))
+        ti.connect("clicked", self.cancel_download)
+        tb_dl.insert(ti, -1)
+
+        ti = gtk.ToolButton(gtk.STOCK_DELETE)
+        ti.set_tooltip_text(_("Remove the selection from the download queue"))
+        ti.connect("clicked", self.remove_download)
+        tb_dl.insert(ti, -1)
         # }}}
         # {{{ TreeViews and data stores
         # Data stores
