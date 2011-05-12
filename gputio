@@ -259,6 +259,8 @@ class GPutIO(object):
         # }}}
         # {{{ Application startup
         self.win.show_all()
+        self.tvf.columns_autosize()
+        self.tvd.columns_autosize()
         self.refresh()
         # }}}
 
