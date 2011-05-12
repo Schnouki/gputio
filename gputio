@@ -123,6 +123,12 @@ class GPutIO(object):
 
         tb_files.insert(gtk.SeparatorToolItem(), -1)
 
+        ti = gtk.ToggleToolButton(gtk.STOCK_CLEAR)
+        ti.set_active(False)
+        ti.set_tooltip_text(_("Enable/disable automatic removal of downloaded remote files"))
+        ti.connect("toggled", self.toggle_autoremove)
+        tb_files.insert(ti, -1)
+
         ti = gtk.ToolButton(gtk.STOCK_SAVE)
         ti.set_tooltip_text(_("Download the selection"))
         ti.connect("clicked", self.download)
@@ -147,8 +153,10 @@ class GPutIO(object):
         # Data stores
         # - TreeStore for the files tree: name, size, icon, ID, URL, full path
         self.tree = gtk.TreeStore(str, long, gtk.gdk.Pixbuf, int, str, str)
-        # - ListStore for the downloads: order, name, URL, total size, downloaded size, current speed
-        self.list = gtk.ListStore(int, str, str, long, long, float)
+        # - ListStore for the downloads: order, name, URL, total size, downloaded size,
+        #   current speed, remove after download, reference to the file in the tree
+        self.list = gtk.ListStore(int, str, str, long, long,
+                                  float, bool, gtk.TreeRowReference)
         self.dl_id = 0
 
         # TreeView for the files tree
@@ -172,6 +180,8 @@ class GPutIO(object):
         cell_txt_right.set_property("xalign", 1.0)
         cell_pb = gtk.CellRendererPixbuf()
         cell_prog = gtk.CellRendererProgress()
+        cell_tog = gtk.CellRendererToggle()
+        cell_tog.connect("toggled", self._toggle_remove)
 
         # Add columns
         tvc = gtk.TreeViewColumn(_("Name"))
@@ -217,6 +227,11 @@ class GPutIO(object):
         tvc.set_resizable(True)
         self.tvd.append_column(tvc)
 
+        tvc = gtk.TreeViewColumn(_("Remove"), cell_tog, active=6)
+        tvc.set_sort_column_id(6)
+        tvc.set_resizable(True)
+        self.tvd.append_column(tvc)
+
         self.tvd.set_tooltip_column(1)
 
         # Default sorting order
@@ -237,6 +252,7 @@ class GPutIO(object):
         self.dl_cancel = False
         self.dl_quit = False
         self.dl_cur_id = -1
+        self.dl_default_remove_after_dl = False
         self.dl_thr = threading.Thread(target=self._download_thread)
         self.dl_thr.daemon = True
         self.dl_thr.start()
@@ -331,9 +347,10 @@ class GPutIO(object):
             tree_iter = model.get_iter(row)
             dls.extend(self._get_download(model, tree_iter))
 
-        for size, url, path in dls:
+        for size, url, path, ref in dls:
             if len(url) > 0:
-                self.list.append((self.dl_id, path, url, size, 0, 0.))
+                self.list.append((self.dl_id, path, url, size, 0,
+                                  0., self.dl_default_remove_after_dl, ref))
                 self.dl_id += 1
 
         self.dl_event.set()
@@ -405,6 +422,10 @@ class GPutIO(object):
         self.status.push(self.sb_ctxt["queue"],
                          ngettext("1 download cancelled",
                                   "%(rm)d downloads cancelled", removed) % {"rm": removed})
+
+    # Enable/disable autoremoval of downloaded remote files
+    def toggle_autoremove(self, widget, data=None):
+        self.dl_default_remove_after_dl = widget.get_active()
     # }}}
     # {{{ Internal (boring) stuff
     # Get an icon from the default theme, using a cache if possible
@@ -458,7 +479,8 @@ class GPutIO(object):
             return tab
         else:
             size, url, path = model.get(tree_iter, 1, 4, 5)
-            return [(size, url, path)]
+            ref = gtk.TreeRowReference(model, model.get_path(tree_iter))
+            return [(size, url, path, ref)]
 
     # Get the size of an item in the TreeStore
     def _get_size(self, model, iter):
@@ -473,6 +495,12 @@ class GPutIO(object):
         else:
             # File
             return model.get_value(iter, 1)
+
+    # Toggle a "remove" radio button
+    def _toggle_remove(self, widget, path, data=None):
+        v = widget.get_active()
+        it = self.list.get_iter(path)
+        self.list.set(it, 6, not v)
     # }}}
     # {{{ Download manager
     # Download manager thread
@@ -565,9 +593,21 @@ class GPutIO(object):
                 size = os.path.getsize(name)
                 self.list.set(tree_iter, 4, size, 5, 0.)
                 if size == total_size:
-                    # Download went fine: schedule its removal from the queue
+                    # Download went fine: remove it remotely if needed and
+                    # schedule its removal from the queue
                     done = True
-                    self.status.push(self.sb_ctxt["queue"], _("%s downloaded successfuly.") % fname)
+                    status_msg = _("%s downloaded successfuly.")
+                    if self.list.get_value(tree_iter, 6):
+                        ref = self.list.get_value(tree_iter, 7)
+                        model, path = ref.get_model(), ref.get_path()
+                        if path is not None:
+                            it = model.get_iter(path)
+                            id_ = model.get_value(it, 3)
+                            item = self.api.get_items(id=id_)[0]
+                            item.delete_item()
+                            model.remove(it)
+                            status_msg = _("%s downloaded and removed from remote.")
+                    self.status.push(self.sb_ctxt["queue"], status_msg % fname)
                     glib.timeout_add(10000, self._download_remove, tree_ref)
 
                 elif self.dl_cancel:
