@@ -336,11 +336,14 @@ class GPutIO(object):
         
         names = []
         ids = []
+        refs = []
         for row in rows:
             tree_iter = model.get_iter(row)
             name, id_ = model.get(tree_iter, 0, 3)
+            ref = gtk.TreeRowReference(model, row)
             names.append(name)
             ids.append(id_)
+            refs.append(ref)
 
         txt = _("The following items will be removed:\n%s\nAre you sure you want to remove them?")
         files = ""
@@ -357,7 +360,11 @@ class GPutIO(object):
             for id_ in ids:
                 item = self.api.get_items(id=id_)[0]
                 item.delete_item()
-            self.refresh()
+            for ref in refs:
+                path = ref.get_path()
+                if path is not None:
+                    tree_iter = model.get_iter(path)
+                    model.remove(tree_iter)
         dlg.destroy()
 
     # Remove selected items from the download queue
