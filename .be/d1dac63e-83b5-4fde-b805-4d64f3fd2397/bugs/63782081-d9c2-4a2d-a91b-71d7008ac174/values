@@ -7,7 +7,7 @@ reporter: Thomas Jost <schnouki@schnouki.net>
 severity: wishlist
 
 
-status: open
+status: fixed
 
 
 summary: If TreeIters are still valid after another row has been removed, then the

@@ -130,7 +130,7 @@ msgstr "Rien à annuler."
 msgid "Refreshing files list..."
 msgstr "Mise à jour de la liste des fichiers..."
 
-#: ../gputio:345
+#: ../gputio:348
 #, python-format
 msgid ""
 "The following items will be removed:\n"
@@ -141,7 +141,7 @@ msgstr ""
 "%s\n"
 "Êtes-vous sûr de vouloir les supprimer ?"
 
-#: ../gputio:353
+#: ../gputio:356
 msgid "Really remove?"
 msgstr "Voulez-vous vraiment supprimer ceci ?"
 
@@ -152,32 +152,25 @@ msgid_plural "%(rm)d downloads cancelled"
 msgstr[0] "1 téléchargement annulé"
 msgstr[1] "%(rm)d téléchargements annulés"
 
-#: ../gputio:391
-#, python-format
-msgid "1 download cancelled. (Warning: len(ids)=%(ids)d)"
-msgid_plural "%(rm)d downloads cancelled. (Warning: len(ids)=%(ids)d)"
-msgstr[0] "1 téléchargement annulé. (Attention : len(ids)=%(ids)d)"
-msgstr[1] "%(rm)d téléchargements annulés. (Attention : len(ids)=%(ids)d)"
-
-#: ../gputio:432
+#: ../gputio:427
 msgid "Files list updated."
 msgstr "Liste des fichiers mise à jour."
 
-#: ../gputio:532
+#: ../gputio:527
 #, python-format
 msgid "Downloading %s..."
 msgstr "Téléchargement de %s..."
 
-#: ../gputio:554
+#: ../gputio:549
 #, python-format
 msgid "%s downloaded successfuly."
 msgstr "Téléchargement de %s terminé."
 
-#: ../gputio:557
+#: ../gputio:555
 #, python-format
 msgid "Download of %s has been cancelled."
 msgstr "Le téléchargement de %s a été annulé."
 
-#: ../gputio:560
+#: ../gputio:561
 msgid "Download failed, trying again in a few seconds..."
 msgstr "Le téléchargement a échoué, nouvel essai dans quelques secondes..."

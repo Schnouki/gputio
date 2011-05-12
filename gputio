@@ -371,33 +371,21 @@ class GPutIO(object):
     def remove_download(self, data=None):
         sel = self.tvd.get_selection()
         model, rows = sel.get_selected_rows()
-        ids = []
+        refs = [gtk.TreeRowReference(model, row) for row in rows]
         removed = 0
 
-        for row in rows:
-            it = model.get_iter(row)
-            id_ = model.get_value(it, 0)
-            if id_ != self.dl_cur_id:
-                ids.append(id_)
+        for ref in refs:
+            path = ref.get_path()
+            if path is not None:
+                it = model.get_iter(path)
+                id_ = model.get_value(it, 0)
+                if id_ != self.dl_cur_id:
+                    model.remove(it)
+                    removed += 1
 
-        it = model.get_iter_first()
-        while it is not None:
-            id_ = model.get_value(it, 0)
-            nit = model.iter_next(it)
-            if id_ in ids:
-                removed += 1
-                model.remove(it)
-            it = nit
-
-        if len(ids) == removed:
-            self.status.push(self.sb_ctxt["queue"],
-                             ngettext("1 download cancelled",
-                                      "%(rm)d downloads cancelled", removed) % {"rm": removed})
-        else:
-            self.status.push(self.sb_ctxt["queue"],
-                             ngettext("1 download cancelled. (Warning: len(ids)=%(ids)d)",
-                                      "%(rm)d downloads cancelled. (Warning: len(ids)=%(ids)d)",
-                                      removed) % {"rm": removed, "ids": len(ids)})
+        self.status.push(self.sb_ctxt["queue"],
+                         ngettext("1 download cancelled",
+                                  "%(rm)d downloads cancelled", removed) % {"rm": removed})
     # }}}
     # {{{ Internal (boring) stuff
     # Get an icon from the default theme, using a cache if possible
