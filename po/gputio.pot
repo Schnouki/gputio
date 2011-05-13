@@ -6,119 +6,127 @@ msgstr ""
 msgid "<b>Download queue</b>"
 msgstr ""
 
-#: ../gputio:119
+#: ../gputio:120
 msgid "Refresh files list"
 msgstr ""
 
-#: ../gputio:121
+#: ../gputio:128
+msgid "Enable/disable automatic removal of downloaded remote files"
+msgstr ""
+
+#: ../gputio:133
 msgid "Download the selection"
 msgstr ""
 
-#: ../gputio:122
+#: ../gputio:138
 msgid "Remove the selection"
 msgstr ""
 
-#: ../gputio:124
+#: ../gputio:143
 msgid "Cancel current download"
 msgstr ""
 
-#: ../gputio:125
+#: ../gputio:148
 msgid "Remove the selection from the download queue"
 msgstr ""
 
-#: ../gputio:158
+#: ../gputio:187
 msgid "Name"
 msgstr ""
 
-#: ../gputio:168
+#: ../gputio:197
 msgid "Size"
 msgstr ""
 
-#: ../gputio:175
+#: ../gputio:204
 msgid "File name"
 msgstr ""
 
-#: ../gputio:181
+#: ../gputio:210
 msgid "Progress"
 msgstr ""
 
-#: ../gputio:188
+#: ../gputio:217
 msgid "Speed"
 msgstr ""
 
-#: ../gputio:195
+#: ../gputio:224
 msgid "ETA"
 msgstr ""
 
-#: ../gputio:250
+#: ../gputio:230
+msgid "Remove"
+msgstr ""
+
+#: ../gputio:287
 #, python-format
 msgid "%d y"
 msgstr ""
 
-#: ../gputio:252
+#: ../gputio:289
 #, python-format
 msgid "%d d"
 msgstr ""
 
-#: ../gputio:254
+#: ../gputio:291
 #, python-format
 msgid "%d h"
 msgstr ""
 
-#: ../gputio:256
+#: ../gputio:293
 #, python-format
 msgid "%d m"
 msgstr ""
 
-#: ../gputio:258
+#: ../gputio:295
 #, python-format
 msgid "%d s"
 msgstr ""
 
-#: ../gputio:273
+#: ../gputio:310
 #, python-format
 msgid "%d B"
 msgstr ""
 
-#: ../gputio:275
+#: ../gputio:312
 #, python-format
 msgid "%.1f kB"
 msgstr ""
 
-#: ../gputio:277
+#: ../gputio:314
 #, python-format
 msgid "%.1f MB"
 msgstr ""
 
-#: ../gputio:279
+#: ../gputio:316
 #, python-format
 msgid "%.1f GB"
 msgstr ""
 
-#: ../gputio:288
+#: ../gputio:325
 #, python-format
 msgid "%d B/s"
 msgstr ""
 
-#: ../gputio:290
+#: ../gputio:327
 #, python-format
 msgid "%.1f kB/s"
 msgstr ""
 
-#: ../gputio:292
+#: ../gputio:329
 #, python-format
 msgid "%.1f MB/s"
 msgstr ""
 
-#: ../gputio:301
+#: ../gputio:338
 msgid "Nothing to cancel."
 msgstr ""
 
-#: ../gputio:326
+#: ../gputio:364
 msgid "Refreshing files list..."
 msgstr ""
 
-#: ../gputio:348
+#: ../gputio:386
 #, python-format
 msgid ""
 "The following items will be removed:\n"
@@ -126,36 +134,41 @@ msgid ""
 "Are you sure you want to remove them?"
 msgstr ""
 
-#: ../gputio:356
+#: ../gputio:394
 msgid "Really remove?"
 msgstr ""
 
-#: ../gputio:387
+#: ../gputio:425
 #, python-format
 msgid "1 download cancelled"
 msgid_plural "%(rm)d downloads cancelled"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../gputio:427
+#: ../gputio:469
 msgid "Files list updated."
 msgstr ""
 
-#: ../gputio:527
+#: ../gputio:578
 #, python-format
 msgid "Downloading %s..."
 msgstr ""
 
-#: ../gputio:549
+#: ../gputio:601
 #, python-format
 msgid "%s downloaded successfuly."
 msgstr ""
 
-#: ../gputio:555
+#: ../gputio:611
+#, python-format
+msgid "%s downloaded and removed from remote."
+msgstr ""
+
+#: ../gputio:618
 #, python-format
 msgid "Download of %s has been cancelled."
 msgstr ""
 
-#: ../gputio:561
+#: ../gputio:624
 msgid "Download failed, trying again in a few seconds..."
 msgstr ""
