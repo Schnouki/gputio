@@ -5,3 +5,6 @@ password = PUTIO_PASSWORD
 [api]
 key = API_KEY
 secret = API_SECRET
+
+[download]
+download_dir = ~/Downloads

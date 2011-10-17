@@ -53,7 +53,7 @@ TYPE_TO_ICON = {
 
 class GPutIO(object):
     # {{{ Initialization
-    def __init__(self, username, password, apikey, apisecret):
+    def __init__(self, username, password, apikey, apisecret, download_dir):
         # {{{ Main window
         self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.win.set_title("GPutio")
@@ -248,6 +248,7 @@ class GPutIO(object):
         self.icons = {}
         # }}}
         # {{{ Download manager
+        self.download_dir = download_dir
         self.dl_event = threading.Event()
         self.dl_cancel = False
         self.dl_quit = False
@@ -536,7 +537,7 @@ class GPutIO(object):
             fname, url, total_size = self.list.get(tree_iter, 1, 2, 3)
 
             # Construct an absolute path
-            name = os.path.join(os.path.expanduser("~"), "Downloads", fname)
+            name = os.path.join(self.download_dir, fname)
             try:
                 os.makedirs(os.path.dirname(name))
             except OSError:
@@ -709,7 +710,9 @@ if __name__ == "__main__":
     password = config.get("account", "password")
     apikey = config.get("api", "key")
     apisecret = config.get("api", "secret")
+    download_dir = config.get("download", "download_dir")
+    download_dir = os.path.expanduser(download_dir)
 
     gobject.threads_init()
-    gputio = GPutIO(username, password, apikey, apisecret)
+    gputio = GPutIO(username, password, apikey, apisecret, download_dir)
     gtk.main()
